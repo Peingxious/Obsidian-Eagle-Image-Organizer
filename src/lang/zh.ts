@@ -83,6 +83,8 @@ export const zh: Record<TranslationKey, string> = {
 	"menu.eagleAnnotation": "Eagle 注释：{annotation}",
 	"menu.eagleUrl": "Eagle 链接：{url}",
 	"menu.eagleTags": "Eagle 标签：{tags}",
+	"menu.copyCurrentMarkdownLink": "复制当前链接",
+	"menu.openComments": "打开标注",
 	"menu.clearMarkdownLink": "清除 Markdown 链接",
 	"menu.copyTagsFailed": "复制标签失败",
 	"menu.modifyProperties": "修改属性",

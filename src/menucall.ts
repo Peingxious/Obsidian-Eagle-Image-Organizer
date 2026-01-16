@@ -108,11 +108,32 @@ export async function addEagleImageMenuPreviewMode(plugin: MyPlugin, menu: Menu,
 	const imageInfo = await fetchImageInfo(oburl);
 
     if (imageInfo) {
-        const { id, name, ext, annotation, tags, url, folders } = imageInfo;
+        const { id, name, ext, annotation, tags, url, folders } = imageInfo as any;
+        const comments = (imageInfo as any).comments as { id?: string; duration?: number; annotation?: string }[] | undefined;
+        const hasComments = comments && comments.length > 0;
+        const tagsArray = Array.isArray(tags) ? tags : tags.split(',').map((tag: any) => tag.trim());
+
         const openInEagle = () => {
             const eagleLink = `eagle://item/${id}`;
             navigator.clipboard.writeText(eagleLink);
-            window.open(eagleLink, '_self');
+            
+            if (process.platform === 'win32') {
+                exec(`start "" "${eagleLink}"`, (error) => {
+                    if (error) {
+                        print(`Error opening URL via start: ${error.message}`);
+                        window.open(eagleLink, '_self');
+                    }
+                });
+            } else if (process.platform === 'darwin') {
+                exec(`open "${eagleLink}"`, (error) => {
+                     if (error) {
+                        print(`Error opening URL via open: ${error.message}`);
+                        window.open(eagleLink, '_self');
+                     }
+                });
+            } else {
+                window.open(eagleLink, '_self');
+            }
         };
         const copyEagleUrl = () => {
             navigator.clipboard.writeText(url);
@@ -122,10 +143,23 @@ export async function addEagleImageMenuPreviewMode(plugin: MyPlugin, menu: Menu,
             window.open(url, '_self');
         };
         
-        // Open File Submenu / Primary: 在 Eagle 中打开
+        // Open File Submenu / Primary: 打开文件所在文件夹
         menu.addItem((item: MenuItem) => {
             const defaultAction = () => {
-                openInEagle();
+                 const libraryPath = plugin.settings.libraryPath;
+                 const dirPath = path.join(libraryPath, "images", `${id}.info`);
+                 
+                 try {
+                    const { shell } = (window as any).require('electron');
+                    shell.openPath(dirPath);
+                 } catch (e) {
+                    print(`Error using shell.openPath: ${e}`);
+                    const child = spawn('explorer.exe', [dirPath], { shell: true });
+                    child.on('error', (error) => {
+                        print('Error opening folder:', error);
+                        new Notice(t('menu.cannotOpenFile'));
+                    });
+                 }
             };
             item
                 .setTitle(t('menu.openFileSubmenu'))
@@ -270,109 +304,48 @@ export async function addEagleImageMenuPreviewMode(plugin: MyPlugin, menu: Menu,
                     })
             );
         });
-        
-        // 预先计算 tags 数组，供复制数据和修改属性共用
-        const tagsArray = Array.isArray(tags) ? tags : tags.split(',').map(tag => tag.trim());
 
-        // Copy Data Submenu / Primary: 打开链接
+        // 打开标注：始终显示（无论是否有 comments）
         menu.addItem((item: MenuItem) => {
-            const defaultAction = () => {
-                openEagleHttpUrl();
+            const openComment = () => {
+                let eagleLink = `eagle://item/${id}`;
+
+                print(`Opening Eagle Link: ${eagleLink}`);
+
+                try {
+                    const { shell } = (window as any).require('electron');
+                    shell.openExternal(eagleLink);
+                } catch (e) {
+                    print(`Error using shell.openExternal: ${e}`);
+                    window.open(eagleLink, '_self');
+                }
             };
+
+            const defaultAction = () => {
+                openComment();
+            };
+
             item
-                .setTitle(t('menu.copyDataSubmenu'))
-                .setIcon("copy")
+                .setTitle(t('menu.openComments'))
+                .setIcon("quote-glyph")
                 .onClick(defaultAction);
 
             if (topLevelActions) {
                 topLevelActions.push(defaultAction);
             }
-            
-            const subMenu = (item as any).setSubmenu() as Menu;
 
-            // 复制源文件
-            subMenu.addItem((subItem) =>
-                subItem
-                    .setIcon("copy")
-                    .setTitle(t('menu.copySourceFile'))
-                    .onClick(() => {
-                        const libraryPath = plugin.settings.libraryPath;
-                        const localFilePath = path.join(
-                            libraryPath,
-                            "images",
-                            `${id}.info`,
-                            `${name}.${ext}`
-                        );
-                        try {
-                            copyFileToClipboardCMD(localFilePath);
-                            new Notice(t('menu.copyToClipboardSuccess'), 3000);
-                        } catch (error) {
-                            console.error(error);
-                            new Notice(t('menu.copyToClipboardFailed'), 3000);
-                        }
-                    })
-            );
-
-            subMenu.addItem((subItem) =>
-                subItem
-                    .setIcon("case-sensitive")
-                    .setTitle(t('menu.eagleName', { name }))
-                    .onClick(() => {
-                        navigator.clipboard.writeText(name);
-                        new Notice(t('menu.copyToClipboardSuccess'));
-                    })
-            );
-
-            subMenu.addItem((subItem) =>
-                subItem
-                    .setIcon("letter-text")
-                    .setTitle(t('menu.eagleAnnotation', { 
-                        annotation: annotation.length > 14 ? annotation.substring(0, 14) + "..." : annotation 
-                    }))
-                    .onClick(() => {
-                        navigator.clipboard.writeText(annotation);
-                        new Notice(t('menu.copyToClipboardSuccess'));
-                    })
-            );
-
-            subMenu.addItem((subItem) =>
-                subItem
-                    .setIcon("link-2")
-                    .setTitle(t('menu.eagleUrl', { url }))
-                    .onClick(() => {
-                        copyEagleUrl();
-                    })
-            );
-
-            subMenu.addItem((subItem) =>
-                subItem
-                    .setIcon("tags")
-                    .setTitle(t('menu.eagleTags', { tags: tagsArray.join(', ') }))
-                    .onClick(() => {
-                        const tagsString = tagsArray.join(', ');
-                        navigator.clipboard.writeText(tagsString)
-                            .then(() => new Notice(t('menu.copyToClipboardSuccess')))
-                            .catch(err => new Notice(t('menu.copyTagsFailed')));
-                    })
-            );
-
-            if (isSourceMode) {
-                subMenu.addItem((subItem) =>
-                    subItem
-                        .setIcon("trash-2")
-                        .setTitle(t('menu.clearMarkdownLink'))
-                        .onClick(() => {
-                            try {
-                                const target = getMouseEventTarget(event);
-                                const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
-                                const editorView = (editor as any).cm as EditorView;
-                                const target_pos = editorView.posAtDOM(target);
-                                deleteCurTargetLink(oburl, plugin, target_pos);
-                            } catch {
-                                new Notice(t('menu.clearFileError'));
-                            }
-                        })
-                );
+            if (hasComments) {
+                const subMenu = (item as any).setSubmenu() as Menu;
+                comments!.forEach((c, index) => {
+                    const label = c.annotation && c.annotation.trim().length > 0 ? c.annotation : `#${index + 1}`;
+                    subMenu.addItem((subItem) =>
+                        subItem
+                            .setTitle(label)
+                            .onClick(() => {
+                                openComment();
+                            })
+                    );
+                });
             }
         });
 
@@ -462,6 +435,165 @@ export async function addEagleImageMenuPreviewMode(plugin: MyPlugin, menu: Menu,
 
             if (topLevelActions) {
                 topLevelActions.push(defaultAction);
+            }
+        });
+
+        // 复制数据：移动到最后一个一级菜单
+        menu.addItem((item: MenuItem) => {
+            const defaultAction = () => {
+                openEagleHttpUrl();
+            };
+            item
+                .setTitle(t('menu.copyDataSubmenu'))
+                .setIcon("copy")
+                .onClick(defaultAction);
+
+            if (topLevelActions) {
+                topLevelActions.push(defaultAction);
+            }
+            
+            const subMenu = (item as any).setSubmenu() as Menu;
+
+            subMenu.addItem((subItem) =>
+                subItem
+                    .setIcon("copy")
+                    .setTitle(t('menu.copySourceFile'))
+                    .onClick(() => {
+                        const libraryPath = plugin.settings.libraryPath;
+                        const localFilePath = path.join(
+                            libraryPath,
+                            "images",
+                            `${id}.info`,
+                            `${name}.${ext}`
+                        );
+                        try {
+                            copyFileToClipboardCMD(localFilePath);
+                            new Notice(t('menu.copyToClipboardSuccess'), 3000);
+                        } catch (error) {
+                            console.error(error);
+                            new Notice(t('menu.copyToClipboardFailed'), 3000);
+                        }
+                    })
+            );
+
+            if (isSourceMode) {
+                subMenu.addItem((subItem) =>
+                    subItem
+                        .setIcon("link")
+                        .setTitle(t('menu.copyCurrentMarkdownLink'))
+                        .onClick(() => {
+                            try {
+                                const target = getMouseEventTarget(event);
+                                const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+                                if (!editor) {
+                                    new Notice(t('menu.cannotFindActiveEditor'));
+                                    return;
+                                }
+                                const editorView = (editor as any).cm as EditorView;
+                                const target_pos = editorView.posAtDOM(target);
+                                const target_line = editorView.state.doc.lineAt(target_pos);
+                                const line_text = target_line.text;
+
+                                let finds = findLinkInLine(oburl, line_text);
+
+                                if (finds.length === 0) {
+                                    try {
+                                        const decodedUrl = decodeURI(oburl);
+                                        if (decodedUrl !== oburl) {
+                                            finds = findLinkInLine(decodedUrl, line_text);
+                                        }
+                                    } catch (e) {
+                                    }
+                                }
+
+                                if (finds.length === 0) {
+                                    try {
+                                        const encodedUrl = encodeURI(oburl);
+                                        if (encodedUrl !== oburl) {
+                                            finds = findLinkInLine(encodedUrl, line_text);
+                                        }
+                                    } catch (e) {
+                                    }
+                                }
+
+                                if (finds.length === 1) {
+                                    const start = finds[0][0];
+                                    const end = finds[0][1];
+                                    const linkText = line_text.slice(start, end);
+                                    navigator.clipboard.writeText(linkText);
+                                    new Notice(t('menu.copyToClipboardSuccess'));
+                                } else if (finds.length === 0) {
+                                    new Notice(t('deleteLink.notFoundInLine'));
+                                } else {
+                                    new Notice(t('deleteLink.multipleInLine'));
+                                }
+                            } catch {
+                                new Notice(t('menu.clearFileError'));
+                            }
+                        })
+                );
+            }
+
+            subMenu.addItem((subItem) =>
+                subItem
+                    .setIcon("case-sensitive")
+                    .setTitle(t('menu.eagleName', { name }))
+                    .onClick(() => {
+                        navigator.clipboard.writeText(name);
+                        new Notice(t('menu.copyToClipboardSuccess'));
+                    })
+            );
+
+            subMenu.addItem((subItem) =>
+                subItem
+                    .setIcon("letter-text")
+                    .setTitle(t('menu.eagleAnnotation', { 
+                        annotation: annotation.length > 14 ? annotation.substring(0, 14) + "..." : annotation 
+                    }))
+                    .onClick(() => {
+                        navigator.clipboard.writeText(annotation);
+                        new Notice(t('menu.copyToClipboardSuccess'));
+                    })
+            );
+
+            subMenu.addItem((subItem) =>
+                subItem
+                    .setIcon("link-2")
+                    .setTitle(t('menu.eagleUrl', { url }))
+                    .onClick(() => {
+                        copyEagleUrl();
+                    })
+            );
+
+            subMenu.addItem((subItem) =>
+                subItem
+                    .setIcon("tags")
+                    .setTitle(t('menu.eagleTags', { tags: tagsArray.join(', ') }))
+                    .onClick(() => {
+                        const tagsString = tagsArray.join(', ');
+                        navigator.clipboard.writeText(tagsString)
+                            .then(() => new Notice(t('menu.copyToClipboardSuccess')))
+                            .catch(err => new Notice(t('menu.copyTagsFailed')));
+                    })
+            );
+
+            if (isSourceMode) {
+                subMenu.addItem((subItem) =>
+                    subItem
+                        .setIcon("trash-2")
+                        .setTitle(t('menu.clearMarkdownLink'))
+                        .onClick(() => {
+                            try {
+                                const target = getMouseEventTarget(event);
+                                const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+                                const editorView = (editor as any).cm as EditorView;
+                                const target_pos = editorView.posAtDOM(target);
+                                deleteCurTargetLink(oburl, plugin, target_pos);
+                            } catch {
+                                new Notice(t('menu.clearFileError'));
+                            }
+                        })
+                );
             }
         });
         // 其他菜单项可以继续使用 { id, name, ext } 数据

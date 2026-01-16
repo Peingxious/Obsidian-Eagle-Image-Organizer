@@ -81,6 +81,8 @@ export const en = {
 	"menu.eagleAnnotation": "Eagle annotation: {annotation}",
 	"menu.eagleUrl": "Eagle URL: {url}",
 	"menu.eagleTags": "Eagle tags: {tags}",
+	"menu.copyCurrentMarkdownLink": "Copy current link",
+	"menu.openComments": "Open comments",
 	"menu.clearMarkdownLink": "Clear markdown link",
 	"menu.copyTagsFailed": "Failed to copy tags",
 	"menu.modifyProperties": "Modify properties",
