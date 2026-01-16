@@ -1,13 +1,63 @@
 /*
-
 This CSS file will be included with your plugin, and
 available in the app when your plugin is enabled.
 
 If your plugin does not need CSS, delete this file.
-
 */
 /* Normal / default when pasting without any other content */
 
 .auto-embed-hide-display {
     display: none !important;
+}
+
+/* Eagle Library Settings */
+.eagle-library-item {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.eagle-library-active {
+    background-color: var(--background-secondary-alt);
+    border: 1px solid var(--interactive-accent);
+}
+
+.eagle-path-setting .setting-item-info {
+    display: none;
+}
+
+.eagle-path-setting .setting-item-control {
+    width: 100%;
+    justify-content: flex-start;
+}
+
+.eagle-path-setting input[type="text"] {
+    width: 100%;
+}
+
+.eagle-active-icon {
+    color: var(--interactive-success);
+}
+
+/* Library Header Styling */
+.eagle-library-header .setting-item-info {
+    display: none;
+}
+
+.eagle-library-header .setting-item-control {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+.eagle-library-header input[type="text"] {
+    flex: 1;
+    width: auto;
+    font-weight: bold;
+}
+
+/* Folder select modal */
+.eagle-folder-list {
+    margin-top: 10px;
 }

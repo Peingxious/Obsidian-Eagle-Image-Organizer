@@ -156,9 +156,9 @@ export default class MyPlugin extends Plugin {
 		const style = document.createElement('style');
 		style.textContent = `
 			.menu-item {
-				max-width: 800px; /* 设置最大宽度 */
-				white-space: normal; /* 允许换行 */
-				word-wrap: break-word; /* 自动换行 */
+				max-width: 800px;
+				white-space: normal;
+				word-wrap: break-word;
 			}
 			
 			.eagle-embed-hide {
@@ -173,7 +173,9 @@ export default class MyPlugin extends Plugin {
 				border: 1px solid var(--background-modifier-border);
 				width: 100%;
 			}
-			
+			.eagle-library-header,.eagle-path-setting {
+				padding: 0;
+			}
 			.eagle-embed-container iframe {
 				display: block;
 				width: 100%;
@@ -181,13 +183,11 @@ export default class MyPlugin extends Plugin {
 				border: none;
 			}
 			
-			/* 编辑模式样式 */
 			.cm-embed-block {
 				margin: 0.5em 0;
 				width: 100%;
 			}
 			
-			/* 占位符样式 */
 			.eagle-embed-placeholder {
 				background: var(--background-secondary);
 				border-radius: 5px;
@@ -196,7 +196,6 @@ export default class MyPlugin extends Plugin {
 				margin: 0.5em 0;
 			}
 			
-			/* 错误样式 */
 			.eagle-embed-error {
 				background: rgba(255, 0, 0, 0.1);
 				border: 1px solid rgba(255, 0, 0, 0.3);
@@ -205,6 +204,51 @@ export default class MyPlugin extends Plugin {
 				text-align: center;
 				margin: 0.5em 0;
 				border-radius: 5px;
+			}
+
+			.eagle-library-block {
+				margin-top: 8px;
+				padding: 8px 12px 10px;
+				border-radius: 6px;
+				background: var(--background-secondary);
+			}
+
+			.eagle-library-block .setting-item {
+				margin: 4px 0;
+			}
+
+			.eagle-library-header .setting-item-info {
+				display: none;
+			}
+
+			.eagle-library-header .setting-item-control {
+				flex: 1;
+				display: flex;
+				align-items: center;
+				gap: 6px;
+			}
+
+			.eagle-library-header input[type="text"] {
+				flex: 1;
+			}
+
+			.eagle-library-path .setting-item-info {
+				display: none;
+			}
+
+			.eagle-library-path .setting-item-control {
+				flex: 1;
+				display: flex;
+				align-items: center;
+				gap: 6px;
+			}
+
+			.eagle-library-path input[type="text"] {
+				flex: 1;
+			}
+
+			.eagle-library-active {
+				border: 1px solid var(--interactive-accent);
 			}
 		`;
 		document.head.appendChild(style);
@@ -221,16 +265,47 @@ export default class MyPlugin extends Plugin {
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-		this.updateLibraryPath(); // 更新Library Path
+		await this.updateLibraryPath();
 	}
 
 	async updateLibraryPath() {
-		for (const path of this.settings.libraryPaths) {
-			if (existsSync(path)) { // 检查路径是否存在
-				this.settings.libraryPath = path;
+		if (!this.settings.libraries || this.settings.libraries.length === 0) {
+			const legacyPaths = (this.settings.libraryPaths && this.settings.libraryPaths.length > 0)
+				? this.settings.libraryPaths
+				: (this.settings.libraryPath ? [this.settings.libraryPath] : []);
+			const id = `default-${Date.now()}`;
+			this.settings.libraries = [
+				{
+					id,
+					name: 'Default',
+					paths: legacyPaths,
+				},
+			];
+			this.settings.currentLibraryId = id;
+		}
+
+		const libraries = this.settings.libraries;
+		let active = libraries.find(l => l.id === this.settings.currentLibraryId);
+		if (!active) {
+			active = libraries[0];
+			this.settings.currentLibraryId = active.id;
+		}
+
+		if (!active.paths || active.paths.length === 0) {
+			const fallback = this.settings.libraryPath ? [this.settings.libraryPath] : [];
+			active.paths = fallback;
+		}
+
+		let selectedPath = active.paths[0] || '';
+		for (const p of active.paths) {
+			if (p && existsSync(p)) {
+				selectedPath = p;
 				break;
 			}
 		}
+
+		this.settings.libraryPath = selectedPath;
+		this.settings.libraryPaths = active.paths.slice();
 		await this.saveSettings();
 	}
 

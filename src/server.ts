@@ -87,11 +87,24 @@ export function startServer(libraryPath: string, port: number) {
         res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
         res.setHeader('Access-Control-Allow-Credentials', 'true');
 
+        const urlObj = new URL(req.url || '/', `http://${req.headers.host}`);
+        const pathname = urlObj.pathname;
+
+        // 处理本插件作为 Eagle API 的代理，避免 CORS
+        if (pathname.startsWith('/api/')) {
+            if (req.method === 'OPTIONS') {
+                res.writeHead(204);
+                res.end();
+                return;
+            }
+            proxyToEagle(pathname + urlObj.search, req, res);
+            return;
+        }
+
         const filePath = path.join(libraryPath, req.url || '');
 
         // 解析 URL 查询参数
-        const url = new URL(req.url || '/', `http://${req.headers.host}`);
-        const noAutoplay = url.searchParams.has('noautoplay');
+        const noAutoplay = urlObj.searchParams.has('noautoplay');
         
         // 将参数存储在请求对象中，以便后续处理时使用
         (req as any).noAutoplay = noAutoplay;
@@ -210,6 +223,49 @@ export function startServer(libraryPath: string, port: number) {
         isServerRunning = true;
         print(`Server is running at http://localhost:${port}/`);
     });
+}
+
+function proxyToEagle(pathWithQuery: string, clientReq: http.IncomingMessage, clientRes: http.ServerResponse) {
+    const options: http.RequestOptions = {
+        hostname: 'localhost',
+        port: 41595,
+        path: pathWithQuery,
+        method: clientReq.method,
+        headers: {
+            'Content-Type': clientReq.headers['content-type'] || 'application/json',
+        },
+    };
+
+    const proxyReq = http.request(options, (proxyRes) => {
+        let body = '';
+        proxyRes.on('data', (chunk) => {
+            body += chunk.toString();
+        });
+        proxyRes.on('end', () => {
+            if (proxyRes.headers['content-type']) {
+                clientRes.setHeader('Content-Type', proxyRes.headers['content-type'] as string);
+            }
+            clientRes.writeHead(proxyRes.statusCode || 500);
+            clientRes.end(body);
+        });
+    });
+
+    proxyReq.on('error', (err) => {
+        print(`Error proxying to Eagle: ${err}`);
+        clientRes.writeHead(500);
+        clientRes.end('Proxy Error');
+    });
+
+    if (clientReq.method === 'GET' || clientReq.method === 'HEAD') {
+        proxyReq.end();
+    } else {
+        clientReq.on('data', (chunk) => {
+            proxyReq.write(chunk);
+        });
+        clientReq.on('end', () => {
+            proxyReq.end();
+        });
+    }
 }
 
 export function refreshServer(libraryPath: string, port: number) {

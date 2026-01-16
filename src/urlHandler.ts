@@ -5,6 +5,7 @@ import * as os from 'os';
 import { getLatestDirUrl, urlEmitter } from './server';
 import MyPlugin from './main';
 import { print, setDebug } from './main';
+import { t } from './i18n';
 const electron = require('electron')
 const clipboard = electron.clipboard;
 
@@ -46,9 +47,9 @@ export async function handlePasteEvent(clipboardEvent: ClipboardEvent, editor: E
             try {
                 const url = `${clipboardText}`;
                 await uploadByUrl(url, pluginInstance, editor);
-                new Notice('URL uploaded successfully, please wait for Eagle link update', 12000);
+                new Notice(t('url.upload.success'), 12000);
             } catch (error) {
-                new Notice('URL upload failed');
+                new Notice(t('url.upload.failed'));
             }
             print(`Clipboard has text: ${clipboardText}`);
         } else {
@@ -62,7 +63,7 @@ export async function handlePasteEvent(clipboardEvent: ClipboardEvent, editor: E
             // 如果 filePath 不属于 pluginInstance.settings.libraryPath 的子文件
             try {
                 await uploadByClipboard(filePath, pluginInstance);
-                new Notice('File uploaded successfully');
+                new Notice(t('file.upload.success'));
 
                 // 监听 URL 更新事件
                 urlEmitter.once('urlUpdated', (latestDirUrl: string) => {
@@ -71,13 +72,13 @@ export async function handlePasteEvent(clipboardEvent: ClipboardEvent, editor: E
 
                     if (['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(fileExt)) {
                         editor.replaceSelection(`![${fileName}|${pluginInstance.settings.imageSize}](${latestDirUrl})`);
-                        new Notice('Eagle link converted');
+                        new Notice(t('file.eagleLinkConverted'));
                     } else {
                         editor.replaceSelection(`[${fileName}](${latestDirUrl})`);
                     }
                 });
             } catch (error) {
-                new Notice('File upload failed, check if Eagle is running');
+                new Notice(t('file.upload.failed'));
             }
         } else {
             // 检查 filePath 中是否包含 'images\xxxxxx.info' 模式
@@ -97,9 +98,9 @@ export async function handlePasteEvent(clipboardEvent: ClipboardEvent, editor: E
                     updatedText = `[${fileName}](http://localhost:${port}/${urlPath})`;
                 }
                 editor.replaceSelection(updatedText);
-                new Notice('Eagle link converted');
+                new Notice(t('file.eagleLinkConverted'));
             } else {
-                new Notice('Non-Eagle link');
+                new Notice(t('file.nonEagleLink'));
             }
         }
     }
@@ -367,7 +368,7 @@ export async function handleDropEvent(dropEvent: DragEvent, editor: Editor, port
                 // 如果 filePath 不属于 pluginInstance.settings.libraryPath 的子文件
                 try {
                     await uploadByClipboard(filePath, pluginInstance);
-                    new Notice('File uploaded successfully');
+                    new Notice(t('file.upload.success'));
 
                     // 监听 URL 更新事件
                     urlEmitter.once('urlUpdated', (latestDirUrl: string) => {
@@ -378,7 +379,7 @@ export async function handleDropEvent(dropEvent: DragEvent, editor: Editor, port
                         let insertText;
                         if (['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(fileExt)) {
                             insertText = `![${fileName}|${pluginInstance.settings.imageSize}](${latestDirUrl})`;
-                            new Notice('Eagle link converted');
+                            new Notice(t('file.eagleLinkConverted'));
                         } else {
                             insertText = `[${fileName}](${latestDirUrl})`;
                         }
@@ -386,10 +387,10 @@ export async function handleDropEvent(dropEvent: DragEvent, editor: Editor, port
                         // 在拖放位置插入内容
                         // 注意：Obsidian会自动处理拖放位置，我们只需要使用replaceSelection
                         editor.replaceSelection(insertText);
-                        new Notice('Eagle链接已转换');
+                        new Notice(t('file.eagleLinkConverted'));
                     });
                 } catch (error) {
-                    new Notice('File upload failed, check if Eagle is running');
+                    new Notice(t('file.upload.failed'));
                 }
             } else {
                 // 检查 filePath 中是否包含 'images\xxxxxx.info' 模式
@@ -407,9 +408,9 @@ export async function handleDropEvent(dropEvent: DragEvent, editor: Editor, port
                         updatedText = `[${fileName}](http://localhost:${port}/${urlPath})`;
                     }
                     editor.replaceSelection(updatedText);
-                    new Notice('Eagle链接已转换');
+                    new Notice(t('file.eagleLinkConverted'));
                 } else {
-                    new Notice('非Eagle链接');
+                    new Notice(t('file.nonEagleLink'));
                 }
             }
         }

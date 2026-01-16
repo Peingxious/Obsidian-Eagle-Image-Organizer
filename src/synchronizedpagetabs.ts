@@ -1,6 +1,7 @@
 import { App, Notice, TFile } from 'obsidian';
 import { MyPluginSettings } from './setting';
 import { print, setDebug } from './main';
+import { t } from './i18n';
 
 export async function syncTags(app: App, settings: MyPluginSettings) {
 	try {
@@ -28,11 +29,11 @@ export async function syncTags(app: App, settings: MyPluginSettings) {
 
 			// 发送更新后的标签
 			await updateTagsForInfoFile(id, newTags);
-			new Notice('Tags synced successfully');
+			new Notice(t('tags.sync.success'));
 		}
 	} catch (error) {
 		print('Error syncing tags:', error);
-		new Notice('Error syncing tags. Check console for details.');
+		new Notice(t('tags.sync.failed'));
 	}
 }
 
@@ -67,13 +68,13 @@ async function updateTagsForInfoFile(id: string, tags: string[]) {
 function getYamlTagsFromCurrentFile(app: App): string[] {
 	const activeFile = app.workspace.getActiveFile();
 	if (!activeFile) {
-		new Notice('No active file found.');
+		new Notice(t('tags.noActiveFile'));
 		return [];
 	}
 
 	const fileCache = app.metadataCache.getFileCache(activeFile);
 	if (!fileCache || !fileCache.frontmatter) {
-		new Notice('No YAML frontmatter found.');
+		new Notice(t('tags.noYaml'));
 		return [];
 	}
 
@@ -83,7 +84,7 @@ function getYamlTagsFromCurrentFile(app: App): string[] {
 async function getInfoFileIdsFromCurrentFile(app: App): Promise<string[]> {
 	const activeFile = app.workspace.getActiveFile();
 	if (!activeFile) {
-		new Notice('No active file found.');
+		new Notice(t('tags.noActiveFile'));
 		return [];
 	}
 
@@ -102,13 +103,13 @@ async function getInfoFileIdsFromCurrentFile(app: App): Promise<string[]> {
 function getYamlIdFromCurrentFile(app: App): string | null {
 	const activeFile = app.workspace.getActiveFile();
 	if (!activeFile) {
-		new Notice('No active file found.');
+		new Notice(t('tags.noActiveFile'));
 		return null;
 	}
 
 	const fileCache = app.metadataCache.getFileCache(activeFile);
 	if (!fileCache || !fileCache.frontmatter) {
-		new Notice('No YAML frontmatter found.');
+		new Notice(t('tags.noYaml'));
 		return null;
 	}
 

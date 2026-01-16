@@ -1,6 +1,7 @@
 import { App, Modal, Notice, Setting, MarkdownView } from 'obsidian';
 import { MyPluginSettings } from './setting';
 import { print, setDebug } from './main';
+import { t } from './i18n';
 
 export class EagleJumpModal extends Modal {
 	private onSubmit: (link: string) => void;
@@ -14,14 +15,14 @@ export class EagleJumpModal extends Modal {
 
 	onOpen() {
 		const { contentEl } = this;
-		contentEl.createEl('h3', { text: 'Please enter Page id or Eagle image link' });
+		contentEl.createEl('h3', { text: t('modal.eagleJump.title') });
 
 		let linkInput: HTMLInputElement;
 
 		new Setting(contentEl)
 			.addText(text => {
 				linkInput = text.inputEl;
-				text.setPlaceholder('link...');
+				text.setPlaceholder(t('modal.eagleJump.placeholder'));
 				linkInput.style.width = '400px'; // 设置文本框宽度为400
 			});
 
@@ -33,7 +34,7 @@ export class EagleJumpModal extends Modal {
 
 		new Setting(buttonContainer)
 			.addButton(btn => btn
-				.setButtonText('Jump')
+				.setButtonText(t('modal.eagleJump.jump'))
 				.setCta()
 				.onClick(() => {
 					const link = linkInput.value.trim();
@@ -63,10 +64,10 @@ export class EagleJumpModal extends Modal {
 								if (searchView && typeof (searchView as any).setQuery === 'function') {
 									(searchView as any).setQuery(itemId);
 								} else {
-									new Notice('Search view does not support setQuery');
+									new Notice(t('modal.eagleJump.searchNotSupported'));
 								}
 							} else {
-								new Notice('Cannot extract a valid ID');
+								new Notice(t('modal.eagleJump.cannotExtractId'));
 							}
 						} else if (uuidMatch) {
 							// 如果是 UUID 格式，构建 obsidian://adv-uri 链接
@@ -75,17 +76,17 @@ export class EagleJumpModal extends Modal {
 							print(`Run link: ${advUri}`);
 							window.open(advUri, '_blank');
 						} else {
-							new Notice('Please enter a valid link');
+							new Notice(t('modal.eagleJump.invalidLink'));
 						}
 						this.close();
 					} else {
-						new Notice('Please enter a valid link');
+						new Notice(t('modal.eagleJump.invalidLink'));
 					}
 				}));
 
 		new Setting(buttonContainer)
 			.addButton(btn => btn
-				.setButtonText('Cancel')
+				.setButtonText(t('modal.eagleJump.cancel'))
 				.onClick(() => {
 					this.close();
 				}));
