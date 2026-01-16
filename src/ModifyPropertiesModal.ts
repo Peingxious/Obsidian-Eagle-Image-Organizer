@@ -14,6 +14,8 @@ export class ModifyPropertiesModal extends Modal {
     tags: string[];
     allTags: string[] = [];
     selectedTags: Set<string>;
+    showArchived: boolean = false;
+    availableTagsContainer: HTMLElement;
     onSubmit: (id: string, name: string, annotation: string, url: string, tags: string[]) => void;
     
     // UI Elements
@@ -104,7 +106,7 @@ export class ModifyPropertiesModal extends Modal {
         searchInput.style.flex = '1';
         searchInput.oninput = (e) => {
             this.searchQuery = (e.target as HTMLInputElement).value;
-            this.renderAvailableTags(availableTagsContainer);
+            this.renderAvailableTags(this.availableTagsContainer);
         };
 
         const addButton = searchContainer.createEl('button', { text: t('modal.modifyProperties.addTag') });
@@ -115,23 +117,37 @@ export class ModifyPropertiesModal extends Modal {
                 searchInput.value = '';
                 this.searchQuery = '';
                 this.renderSelectedTags(selectedTagsContainer);
-                this.renderAvailableTags(availableTagsContainer);
+                this.renderAvailableTags(this.availableTagsContainer);
             }
         };
 
+        const archiveButton = searchContainer.createEl('button', { text: t('modal.modifyProperties.archive') });
+        archiveButton.style.marginLeft = '5px';
+        archiveButton.onclick = () => {
+             this.showArchived = !this.showArchived;
+             if (this.showArchived) {
+                 archiveButton.style.backgroundColor = 'var(--interactive-accent)';
+                 archiveButton.style.color = 'var(--text-on-accent)';
+             } else {
+                 archiveButton.style.backgroundColor = '';
+                 archiveButton.style.color = '';
+             }
+             this.renderAvailableTags(this.availableTagsContainer);
+        };
+
         // Available Tags Area
-        const availableTagsContainer = contentEl.createDiv({ cls: 'eagle-available-tags' });
-        availableTagsContainer.style.display = 'flex';
-        availableTagsContainer.style.flexWrap = 'wrap';
-        availableTagsContainer.style.gap = '5px';
-        availableTagsContainer.style.maxHeight = '150px';
-        availableTagsContainer.style.overflowY = 'auto';
-        availableTagsContainer.style.border = '1px solid var(--background-modifier-border)';
-        availableTagsContainer.style.padding = '10px';
+        this.availableTagsContainer = contentEl.createDiv({ cls: 'eagle-available-tags' });
+        this.availableTagsContainer.style.display = 'flex';
+        this.availableTagsContainer.style.flexWrap = 'wrap';
+        this.availableTagsContainer.style.gap = '5px';
+        this.availableTagsContainer.style.maxHeight = '150px';
+        this.availableTagsContainer.style.overflowY = 'auto';
+        this.availableTagsContainer.style.border = '1px solid var(--background-modifier-border)';
+        this.availableTagsContainer.style.padding = '10px';
 
         // Load tags
         await this.fetchTags();
-        this.renderAvailableTags(availableTagsContainer);
+        this.renderAvailableTags(this.availableTagsContainer);
 
         // Save Button
         new Setting(contentEl)
@@ -173,9 +189,23 @@ export class ModifyPropertiesModal extends Modal {
     renderAvailableTags(container: HTMLElement) {
         container.empty();
         const query = this.searchQuery.toLowerCase();
-        const filteredTags = this.allTags.filter(tag => 
-            tag.toLowerCase().includes(query) && !this.selectedTags.has(tag)
-        );
+        
+        if (!this.plugin.settings.archivedTags) {
+            this.plugin.settings.archivedTags = [];
+        }
+        const archivedTags = new Set(this.plugin.settings.archivedTags);
+
+        const filteredTags = this.allTags.filter(tag => {
+            const matchesQuery = tag.toLowerCase().includes(query);
+            const notSelected = !this.selectedTags.has(tag);
+            const isArchived = archivedTags.has(tag);
+            
+            if (this.showArchived) {
+                return matchesQuery && notSelected && isArchived;
+            } else {
+                return matchesQuery && notSelected && !isArchived;
+            }
+        });
 
         filteredTags.forEach(tag => {
             const tagEl = container.createDiv({ cls: 'eagle-tag-item' });
@@ -195,6 +225,24 @@ export class ModifyPropertiesModal extends Modal {
                 if (selectedContainer) this.renderSelectedTags(selectedContainer);
                 this.renderAvailableTags(container);
             };
+
+            tagEl.addEventListener('contextmenu', async (e) => {
+                e.preventDefault();
+                
+                if (this.showArchived) {
+                    // Unarchive
+                    this.plugin.settings.archivedTags = (this.plugin.settings.archivedTags || []).filter(t => t !== tag);
+                } else {
+                    // Archive
+                    if (!this.plugin.settings.archivedTags) this.plugin.settings.archivedTags = [];
+                    if (!this.plugin.settings.archivedTags.includes(tag)) {
+                        this.plugin.settings.archivedTags.push(tag);
+                    }
+                }
+                
+                await this.plugin.saveSettings();
+                this.renderAvailableTags(container);
+            });
         });
     }
 

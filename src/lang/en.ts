@@ -100,6 +100,7 @@ export const en = {
 	"modal.modifyProperties.tagsDesc": "Select or add tags",
 	"modal.modifyProperties.searchTags": "Search tags...",
 	"modal.modifyProperties.addTag": "Add",
+	"modal.modifyProperties.archive": "Archive",
 	"modal.modifyProperties.save": "Save",
 	"modal.modifyProperties.uploadSuccess": "Data uploaded successfully",
 	"modal.modifyProperties.uploadFailed": "Failed to upload data",

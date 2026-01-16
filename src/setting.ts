@@ -26,6 +26,7 @@ export interface MyPluginSettings {
 	openInObsidian: string;
 	libraries?: EagleLibrary[];
 	currentLibraryId?: string;
+	archivedTags?: string[];
 }
 
 export const DEFAULT_SETTINGS: MyPluginSettings = {
@@ -45,6 +46,7 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
 	openInObsidian: 'newPage',
 	libraries: [],
 	currentLibraryId: undefined,
+	archivedTags: [],
 }
 
 

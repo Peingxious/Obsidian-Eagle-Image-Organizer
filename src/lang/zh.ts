@@ -102,6 +102,7 @@ export const zh: Record<TranslationKey, string> = {
 	"modal.modifyProperties.tagsDesc": "选择或新增标签",
 	"modal.modifyProperties.searchTags": "搜索标签...",
 	"modal.modifyProperties.addTag": "添加",
+	"modal.modifyProperties.archive": "归档",
 	"modal.modifyProperties.save": "保存",
 	"modal.modifyProperties.uploadSuccess": "数据上传成功",
 	"modal.modifyProperties.uploadFailed": "数据上传失败",
