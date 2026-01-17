@@ -20,16 +20,16 @@ export const zh: Record<TranslationKey, string> = {
 	"setting.libraryPaths.pathPlaceholder": "请输入库路径",
 	"setting.libraryPaths.remove": "删除",
 
-	"setting.folderId.name": "Eagle 文件夹 ID",
-	"setting.folderId.desc": "上传文件到 Eagle 时使用的文件夹 ID",
+	"setting.folderId.name": "传入指定文件夹",
+	"setting.folderId.desc": "限定上传到 Eagle 时使用的目标文件夹（填写文件夹 ID）",
 	"setting.folderId.placeholder": "请输入文件夹 ID",
 
-	"setting.folderScope.name": "文件夹限定（填写文件夹ID）",
-	"setting.folderScope.desc": "只在此文件夹及其子文件夹范围内设置项目文件夹（填写文件夹 ID）",
+	"setting.folderScope.name": "图片设置文件夹",
+	"setting.folderScope.desc": "只在此文件夹及其子文件夹内启用项目文件夹设置（填写文件夹 ID）",
 	"setting.folderScope.placeholder": "请输入父文件夹 ID",
 
 	"setting.imageSize.name": "图片尺寸",
-	"setting.imageSize.desc": "导入图片时的默认尺寸",
+	"setting.imageSize.desc": "导入图片时的默认尺寸（例如 300 表示 300 像素宽）",
 	"setting.imageSize.placeholder": "请输入图片尺寸",
 
 	"setting.clickView.name": "点击查看大图",
@@ -54,6 +54,15 @@ export const zh: Record<TranslationKey, string> = {
 
 	"setting.websiteUpload.name": "网址上传",
 	"setting.websiteUpload.desc": "将外部 URL 上传到 Eagle。注意：1）Eagle 获取封面有一定延迟；2）导出并分享给他人时可能无法正常跳转；3）本选项不影响从 Eagle 拖拽/复制到 Obsidian 的链接。",
+
+	"setting.group.id.title": "ID 设置分组",
+	"setting.group.id.desc": "限定设置文件夹，输入必须使用文件夹 ID。",
+
+	"setting.group.image.title": "图片传入设置",
+	"setting.group.image.desc": "为直接传入 Obsidian 的图片设定默认行为和显示方式。",
+
+	"setting.group.advUri.title": "与 Advanced URI 联动",
+	"setting.group.advUri.desc": "当存在页面 ID 时，与 Advanced URI 插件进行联动配置。",
 
 	"setting.refreshServer.name": "刷新服务器",
 	"setting.refreshServer.desc": "使用最新设置重启本地服务器",

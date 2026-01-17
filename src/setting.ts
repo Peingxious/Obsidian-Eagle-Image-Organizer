@@ -53,6 +53,9 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
 export class SampleSettingTab extends PluginSettingTab {
 	plugin: MyPlugin;
 	private librariesCollapsed: boolean = false;
+	private idGroupCollapsed: boolean = false;
+	private imageGroupCollapsed: boolean = false;
+	private advGroupCollapsed: boolean = false;
 
 	constructor(app: App, plugin: MyPlugin) {
 		super(app, plugin);
@@ -231,7 +234,53 @@ export class SampleSettingTab extends PluginSettingTab {
 			});
 		});
 
-		new Setting(containerEl)
+		const idGroup = containerEl.createDiv();
+		const idHeader = new Setting(idGroup)
+			.setName(t('setting.group.id.title'))
+			.setDesc(t('setting.group.id.desc'));
+
+		const idInfoEl = (idHeader as any).infoEl as HTMLElement;
+		if (idInfoEl) {
+			idInfoEl.empty();
+			const row = idInfoEl.createDiv();
+			row.style.display = 'flex';
+			row.style.alignItems = 'center';
+			row.style.gap = '8px';
+
+			const toggleDiv = row.createDiv();
+			toggleDiv.textContent = this.idGroupCollapsed ? '▸' : '▾';
+			toggleDiv.style.cursor = 'pointer';
+			toggleDiv.style.display = 'flex';
+			toggleDiv.style.alignItems = 'center';
+			toggleDiv.style.justifyContent = 'center';
+			toggleDiv.style.width = '22px';
+			toggleDiv.style.height = '22px';
+			toggleDiv.style.fontSize = '18px';
+
+			const textWrapper = row.createDiv();
+			textWrapper.style.display = 'flex';
+			textWrapper.style.flexDirection = 'column';
+
+			const titleDiv = textWrapper.createDiv({ cls: 'setting-item-name' });
+			titleDiv.textContent = t('setting.group.id.title');
+
+			const descDiv = textWrapper.createDiv({ cls: 'setting-item-description' });
+			descDiv.textContent = t('setting.group.id.desc');
+
+			toggleDiv.addEventListener('click', (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				this.idGroupCollapsed = !this.idGroupCollapsed;
+				this.display();
+			});
+		}
+
+		const idBody = idGroup.createDiv();
+		if (this.idGroupCollapsed) {
+			idBody.style.display = 'none';
+		}
+
+		new Setting(idBody)
 			.setName(t('setting.folderId.name'))
 			.setDesc(t('setting.folderId.desc'))
 			.addText(text => text
@@ -242,7 +291,7 @@ export class SampleSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
-		new Setting(containerEl)
+		new Setting(idBody)
 			.setName(t('setting.folderScope.name'))
 			.setDesc(t('setting.folderScope.desc'))
 			.addText(text => text
@@ -252,55 +301,161 @@ export class SampleSettingTab extends PluginSettingTab {
 					this.plugin.settings.folderScope = value;
 					await this.plugin.saveSettings();
 				}));
-		
-		new Setting(containerEl)
-		.setName(t('setting.imageSize.name'))
-		.setDesc(t('setting.imageSize.desc'))
-		.addText(text => text
-			.setPlaceholder(t('setting.imageSize.placeholder'))
-			.setValue(this.plugin.settings.imageSize?.toString() || '')
-			.onChange(async (value) => {
-				this.plugin.settings.imageSize = value ? parseInt(value) : undefined;
-				await this.plugin.saveSettings();
-			}));
 
-        new Setting(containerEl)
-            .setName(t('setting.clickView.name'))
-            .setDesc(t('setting.clickView.desc'))
-            .addToggle((toggle) => {
-                toggle.setValue(this.plugin.settings.clickView)
-                    .onChange(async (value) => {
-                        this.plugin.settings.clickView = value;
-                        await this.plugin.saveSettings();
-                    });
-            });
+		const imageGroup = containerEl.createDiv();
+		const imageHeader = new Setting(imageGroup)
+			.setName(t('setting.group.image.title'))
+			.setDesc(t('setting.group.image.desc'));
 
-		new Setting(containerEl)
-		.setName(t('setting.adaptiveRatio.name'))
-		.setDesc(t('setting.adaptiveRatio.desc'))
-		.addSlider((slider) => {
-			slider.setLimits(0.1, 1, 0.05);
-			slider.setValue(this.plugin.settings.adaptiveRatio);
-			slider.onChange(async (value) => {
-				this.plugin.settings.adaptiveRatio = value;
-				new Notice(t('setting.adaptiveRatio.notice', { value }));
-				await this.plugin.saveSettings();
+		const imageInfoEl = (imageHeader as any).infoEl as HTMLElement;
+		if (imageInfoEl) {
+			imageInfoEl.empty();
+			const row = imageInfoEl.createDiv();
+			row.style.display = 'flex';
+			row.style.alignItems = 'center';
+			row.style.gap = '8px';
+
+			const toggleDiv = row.createDiv();
+			toggleDiv.textContent = this.imageGroupCollapsed ? '▸' : '▾';
+			toggleDiv.style.cursor = 'pointer';
+			toggleDiv.style.display = 'flex';
+			toggleDiv.style.alignItems = 'center';
+			toggleDiv.style.justifyContent = 'center';
+			toggleDiv.style.width = '22px';
+			toggleDiv.style.height = '22px';
+			toggleDiv.style.fontSize = '18px';
+
+			const textWrapper = row.createDiv();
+			textWrapper.style.display = 'flex';
+			textWrapper.style.flexDirection = 'column';
+
+			const titleDiv = textWrapper.createDiv({ cls: 'setting-item-name' });
+			titleDiv.textContent = t('setting.group.image.title');
+
+			const descDiv = textWrapper.createDiv({ cls: 'setting-item-description' });
+			descDiv.textContent = t('setting.group.image.desc');
+
+			toggleDiv.addEventListener('click', (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				this.imageGroupCollapsed = !this.imageGroupCollapsed;
+				this.display();
 			});
-			slider.setDynamicTooltip();
-		});
+		}
 
-		new Setting(containerEl)
-            .setName(t('setting.advancedId.name'))
-            .setDesc(t('setting.advancedId.desc'))
-            .addToggle((toggle) => {
-                toggle.setValue(this.plugin.settings.advancedID)
-                    .onChange(async (value) => {
-                        this.plugin.settings.advancedID = value;
-                        await this.plugin.saveSettings();
-                    });
-            });
+		const imageBody = imageGroup.createDiv();
+		if (this.imageGroupCollapsed) {
+			imageBody.style.display = 'none';
+		}
 
-		new Setting(containerEl)
+		new Setting(imageBody)
+			.setName(t('setting.imageSize.name'))
+			.setDesc(t('setting.imageSize.desc'))
+			.addText(text => text
+				.setPlaceholder(t('setting.imageSize.placeholder'))
+				.setValue(this.plugin.settings.imageSize?.toString() || '')
+				.onChange(async (value) => {
+					this.plugin.settings.imageSize = value ? parseInt(value) : undefined;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(imageBody)
+			.setName(t('setting.clickView.name'))
+			.setDesc(t('setting.clickView.desc'))
+			.addToggle((toggle) => {
+				toggle.setValue(this.plugin.settings.clickView)
+					.onChange(async (value) => {
+						this.plugin.settings.clickView = value;
+						await this.plugin.saveSettings();
+					});
+			});
+
+		new Setting(imageBody)
+			.setName(t('setting.adaptiveRatio.name'))
+			.setDesc(t('setting.adaptiveRatio.desc'))
+			.addSlider((slider) => {
+				slider.setLimits(0.1, 1, 0.05);
+				slider.setValue(this.plugin.settings.adaptiveRatio);
+				slider.onChange(async (value) => {
+					this.plugin.settings.adaptiveRatio = value;
+					new Notice(t('setting.adaptiveRatio.notice', { value }));
+					await this.plugin.saveSettings();
+				});
+				slider.setDynamicTooltip();
+			});
+
+		new Setting(imageBody)
+			.setName(t('setting.openInObsidian.name'))
+			.setDesc(t('setting.openInObsidian.desc'))
+			.addDropdown(dropdown => {
+				dropdown.addOption('newPage', t('setting.openInObsidian.newPage'))
+					.addOption('popup', t('setting.openInObsidian.popup'))
+					.addOption('rightPane', t('setting.openInObsidian.rightPane'))
+					.setValue(this.plugin.settings.openInObsidian || 'newPage')
+					.onChange(async (value) => {
+						this.plugin.settings.openInObsidian = value;
+						await this.plugin.saveSettings();
+					});
+			});
+
+		const advGroup = containerEl.createDiv();
+		const advHeader = new Setting(advGroup)
+			.setName(t('setting.group.advUri.title'))
+			.setDesc(t('setting.group.advUri.desc'));
+
+		const advInfoEl = (advHeader as any).infoEl as HTMLElement;
+		if (advInfoEl) {
+			advInfoEl.empty();
+			const row = advInfoEl.createDiv();
+			row.style.display = 'flex';
+			row.style.alignItems = 'center';
+			row.style.gap = '8px';
+
+			const toggleDiv = row.createDiv();
+			toggleDiv.textContent = this.advGroupCollapsed ? '▸' : '▾';
+			toggleDiv.style.cursor = 'pointer';
+			toggleDiv.style.display = 'flex';
+			toggleDiv.style.alignItems = 'center';
+			toggleDiv.style.justifyContent = 'center';
+			toggleDiv.style.width = '22px';
+			toggleDiv.style.height = '22px';
+			toggleDiv.style.fontSize = '18px';
+
+			const textWrapper = row.createDiv();
+			textWrapper.style.display = 'flex';
+			textWrapper.style.flexDirection = 'column';
+
+			const titleDiv = textWrapper.createDiv({ cls: 'setting-item-name' });
+			titleDiv.textContent = t('setting.group.advUri.title');
+
+			const descDiv = textWrapper.createDiv({ cls: 'setting-item-description' });
+			descDiv.textContent = t('setting.group.advUri.desc');
+
+			toggleDiv.addEventListener('click', (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				this.advGroupCollapsed = !this.advGroupCollapsed;
+				this.display();
+			});
+		}
+
+		const advBody = advGroup.createDiv();
+		if (this.advGroupCollapsed) {
+			advBody.style.display = 'none';
+		}
+
+		new Setting(advBody)
+			.setName(t('setting.advancedId.name'))
+			.setDesc(t('setting.advancedId.desc'))
+			.addToggle((toggle) => {
+				toggle.setValue(this.plugin.settings.advancedID)
+					.onChange(async (value) => {
+						this.plugin.settings.advancedID = value;
+						await this.plugin.saveSettings();
+					});
+			});
+
+		new Setting(advBody)
 			.setName(t('setting.obsidianStoreId.name'))
 			.setDesc(t('setting.obsidianStoreId.desc'))
 			.addText(text => text
@@ -310,19 +465,6 @@ export class SampleSettingTab extends PluginSettingTab {
 					this.plugin.settings.obsidianStoreId = value;
 					await this.plugin.saveSettings();
 				}));
-		new Setting(containerEl)
-		.setName(t('setting.openInObsidian.name'))
-		.setDesc(t('setting.openInObsidian.desc'))
-		.addDropdown(dropdown => {
-			dropdown.addOption('newPage', t('setting.openInObsidian.newPage'))
-				.addOption('popup', t('setting.openInObsidian.popup'))
-				.addOption('rightPane', t('setting.openInObsidian.rightPane'))
-				.setValue(this.plugin.settings.openInObsidian || 'newPage')
-				.onChange(async (value) => {
-					this.plugin.settings.openInObsidian = value;
-					await this.plugin.saveSettings();
-				});
-		});
 
 		new Setting(containerEl)
 		.setName(t('setting.websiteUpload.name'))

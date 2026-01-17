@@ -18,12 +18,12 @@ export const en = {
 	"setting.libraryPaths.pathPlaceholder": "Enter library path",
 	"setting.libraryPaths.remove": "Remove",
 
-	"setting.folderId.name": "Eagle folder ID",
-	"setting.folderId.desc": "Folder ID used when uploading files to Eagle",
+	"setting.folderId.name": "Target Eagle folder",
+	"setting.folderId.desc": "Folder ID used as the target when uploading files to Eagle",
 	"setting.folderId.placeholder": "Enter folder ID",
 
-	"setting.folderScope.name": "Folder Scope",
-	"setting.folderScope.desc": "Limit folder selection to this folder ID (and its subfolders)",
+	"setting.folderScope.name": "Image settings folder",
+	"setting.folderScope.desc": "Only enable project folder settings under this folder ID (and its subfolders)",
 	"setting.folderScope.placeholder": "Enter parent folder ID",
 
 	"setting.imageSize.name": "Image size",
@@ -52,6 +52,15 @@ export const en = {
 
 	"setting.websiteUpload.name": "Website upload",
 	"setting.websiteUpload.desc": "Upload external URLs to Eagle. Note: 1) Eagle fetches covers with some delay; 2) exported notes shared with others may not open correctly; 3) this option does not affect links dragged/copied from Eagle.",
+
+	"setting.group.id.title": "ID settings",
+	"setting.group.id.desc": "Limit target folders; all inputs must use Eagle folder IDs.",
+
+	"setting.group.image.title": "Image import settings",
+	"setting.group.image.desc": "Default behavior and display options for images inserted into Obsidian.",
+
+	"setting.group.advUri.title": "Advanced URI integration",
+	"setting.group.advUri.desc": "Configure how this plugin integrates with the Advanced URI plugin when page IDs exist.",
 
 	"setting.refreshServer.name": "Refresh server",
 	"setting.refreshServer.desc": "Restart the local server with the latest settings",
