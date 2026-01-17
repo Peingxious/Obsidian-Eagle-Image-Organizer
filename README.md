@@ -14,6 +14,7 @@ This plugin includes the following functionalities:
 - Tag synchronization
 - File viewing
 - Attachment management
+- Search and insert Eagle assets
 
 [![GitHub stars](https://img.shields.io/github/stars/zyjGraphein/Obsidian-EagleBridge?style=flat&label=Stars)](https://github.com/zyjGraphein/Obsidian-EagleBridge/stargazers)
 [![Total Downloads](https://img.shields.io/github/downloads/zyjGraphein/Obsidian-EagleBridge/total?style=flat&label=Total%20Downloads)](https://github.com/zyjGraphein/Obsidian-EagleBridge/releases)
@@ -42,6 +43,15 @@ You need to restart Obsidian after completing these configurations, and then you
 ### Upload Local Attachments to Eagle via EagleBridge and View in Obsidian
 
 <img src="assets/upload.gif" width="800">
+
+### Search and Insert Eagle Assets
+
+Run `Eagle Bridge: Insert Image from Eagle` via Command Palette (hotkey recommended) to open the search window:
+
+- **Multi-keyword Search**: Support multiple keywords (space-separated) in any order (e.g., `Poster Japanese`).
+- **Keyboard Navigation**: Use `Arrow Up`/`Arrow Down` to select and `Enter` to insert.
+- **Thumbnail Preview**: Direct preview of asset thumbnails, with support for more formats like BMP/TIFF.
+- **Link Format**: Inserted links point directly to the local server, ensuring perfect display in Obsidian.
 
 
 ## Installation Instructions

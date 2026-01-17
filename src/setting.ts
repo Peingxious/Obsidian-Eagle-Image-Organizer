@@ -52,6 +52,7 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
 
 export class SampleSettingTab extends PluginSettingTab {
 	plugin: MyPlugin;
+	private librariesCollapsed: boolean = false;
 
 	constructor(app: App, plugin: MyPlugin) {
 		super(app, plugin);
@@ -60,9 +61,6 @@ export class SampleSettingTab extends PluginSettingTab {
 
 	display(): void {
 		const { containerEl } = this;
-		const prevLibrariesDetails = containerEl.querySelector('details[data-eagle-libraries]') as HTMLDetailsElement | null;
-		const prevLibrariesOpen = prevLibrariesDetails ? prevLibrariesDetails.open : true;
-
 		containerEl.empty();
 
 		new Setting(containerEl)
@@ -76,13 +74,10 @@ export class SampleSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
-		const librariesDetails = containerEl.createEl('details');
-		librariesDetails.setAttr('data-eagle-libraries', 'true');
-		librariesDetails.open = prevLibrariesOpen;
-		const librariesSummary = librariesDetails.createEl('summary');
-		librariesSummary.setText(t('setting.libraries.title'));
+		const librariesSection = containerEl.createDiv();
+		librariesSection.setAttr('data-eagle-libraries', 'true');
 
-		new Setting(librariesDetails)
+		const librariesHeaderSetting = new Setting(librariesSection)
 			.setName(t('setting.libraries.title'))
 			.setDesc(t('setting.libraries.desc', { path: this.plugin.settings.libraryPath || '' }))
 			.addButton(button => {
@@ -104,6 +99,48 @@ export class SampleSettingTab extends PluginSettingTab {
 						this.display();
 					});
 			});
+
+		const infoEl = (librariesHeaderSetting as any).infoEl as HTMLElement;
+		if (infoEl) {
+			infoEl.empty();
+			const row = infoEl.createDiv();
+			row.style.display = 'flex';
+			row.style.alignItems = 'center';
+			row.style.gap = '8px';
+
+			const toggleDiv = row.createDiv();
+			toggleDiv.addClass('eagle-libraries-toggle');
+			toggleDiv.textContent = this.librariesCollapsed ? '▸' : '▾';
+			toggleDiv.style.cursor = 'pointer';
+			toggleDiv.style.display = 'flex';
+			toggleDiv.style.alignItems = 'center';
+			toggleDiv.style.justifyContent = 'center';
+			toggleDiv.style.width = '22px';
+			toggleDiv.style.height = '22px';
+			toggleDiv.style.fontSize = '18px';
+
+			const textWrapper = row.createDiv();
+			textWrapper.style.display = 'flex';
+			textWrapper.style.flexDirection = 'column';
+
+			const titleDiv = textWrapper.createDiv({ cls: 'setting-item-name' });
+			titleDiv.textContent = t('setting.libraries.title');
+
+			const descDiv = textWrapper.createDiv({ cls: 'setting-item-description' });
+			descDiv.textContent = t('setting.libraries.desc', { path: this.plugin.settings.libraryPath || '' });
+
+			toggleDiv.addEventListener('click', (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				this.librariesCollapsed = !this.librariesCollapsed;
+				this.display();
+			});
+		}
+
+		const librariesDetails = librariesSection.createDiv();
+		if (this.librariesCollapsed) {
+			librariesDetails.style.display = 'none';
+		}
 
 		const libraries = this.plugin.settings.libraries || [];
 		libraries.forEach((lib, index) => {
