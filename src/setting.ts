@@ -52,10 +52,10 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
 
 export class SampleSettingTab extends PluginSettingTab {
 	plugin: MyPlugin;
-	private librariesCollapsed: boolean = false;
-	private idGroupCollapsed: boolean = false;
-	private imageGroupCollapsed: boolean = false;
-	private advGroupCollapsed: boolean = false;
+	private librariesCollapsed: boolean = true;
+	private idGroupCollapsed: boolean = true;
+	private imageGroupCollapsed: boolean = true;
+	private advGroupCollapsed: boolean = true;
 
 	constructor(app: App, plugin: MyPlugin) {
 		super(app, plugin);
@@ -79,66 +79,63 @@ export class SampleSettingTab extends PluginSettingTab {
 
 		const librariesSection = containerEl.createDiv();
 		librariesSection.setAttr('data-eagle-libraries', 'true');
+		librariesSection.style.marginTop = '12px';
 
-		const librariesHeaderSetting = new Setting(librariesSection)
-			.setName(t('setting.libraries.title'))
-			.setDesc(t('setting.libraries.desc', { path: this.plugin.settings.libraryPath || '' }))
-			.addButton(button => {
-				button.setButtonText(t('setting.libraries.addLibrary'))
-					.setCta()
-					.onClick(async () => {
-						if (!this.plugin.settings.libraries) {
-							this.plugin.settings.libraries = [];
-						}
-						const id = `lib-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-						this.plugin.settings.libraries.push({
-							id,
-							name: t('setting.libraries.defaultName'),
-							paths: [],
-						});
-						this.plugin.settings.currentLibraryId = id;
-						await this.plugin.saveSettings();
-						await this.plugin.updateLibraryPath();
-						this.display();
-					});
+		const librariesHeaderRow = librariesSection.createDiv();
+		librariesHeaderRow.style.display = 'flex';
+		librariesHeaderRow.style.alignItems = 'center';
+		librariesHeaderRow.style.gap = '8px';
+		librariesHeaderRow.style.justifyContent = 'space-between';
+
+		const librariesHeaderLeft = librariesHeaderRow.createDiv();
+		librariesHeaderLeft.style.display = 'flex';
+		librariesHeaderLeft.style.alignItems = 'center';
+		librariesHeaderLeft.style.gap = '8px';
+
+		const librariesToggleDiv = librariesHeaderLeft.createDiv();
+		librariesToggleDiv.textContent = this.librariesCollapsed ? '▸' : '▾';
+		librariesToggleDiv.style.cursor = 'pointer';
+		librariesToggleDiv.style.display = 'flex';
+		librariesToggleDiv.style.alignItems = 'center';
+		librariesToggleDiv.style.justifyContent = 'center';
+		librariesToggleDiv.style.width = '22px';
+		librariesToggleDiv.style.height = '22px';
+		librariesToggleDiv.style.fontSize = '18px';
+
+		const librariesTextWrapper = librariesHeaderLeft.createDiv();
+		librariesTextWrapper.style.display = 'flex';
+		librariesTextWrapper.style.flexDirection = 'column';
+
+		const librariesTitleDiv = librariesTextWrapper.createDiv({ cls: 'setting-item-name' });
+		librariesTitleDiv.textContent = t('setting.libraries.title');
+
+		const librariesDescDiv = librariesTextWrapper.createDiv({ cls: 'setting-item-description' });
+		librariesDescDiv.textContent = t('setting.libraries.desc', { path: this.plugin.settings.libraryPath || '' });
+
+		librariesToggleDiv.addEventListener('click', (event) => {
+			event.preventDefault();
+			event.stopPropagation();
+			this.librariesCollapsed = !this.librariesCollapsed;
+			this.display();
+		});
+
+		const addLibraryButton = librariesHeaderRow.createEl('button', { text: t('setting.libraries.addLibrary') });
+		addLibraryButton.classList.add('mod-cta');
+		addLibraryButton.onclick = async () => {
+			if (!this.plugin.settings.libraries) {
+				this.plugin.settings.libraries = [];
+			}
+			const id = `lib-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+			this.plugin.settings.libraries.push({
+				id,
+				name: t('setting.libraries.defaultName'),
+				paths: [],
 			});
-
-		const infoEl = (librariesHeaderSetting as any).infoEl as HTMLElement;
-		if (infoEl) {
-			infoEl.empty();
-			const row = infoEl.createDiv();
-			row.style.display = 'flex';
-			row.style.alignItems = 'center';
-			row.style.gap = '8px';
-
-			const toggleDiv = row.createDiv();
-			toggleDiv.addClass('eagle-libraries-toggle');
-			toggleDiv.textContent = this.librariesCollapsed ? '▸' : '▾';
-			toggleDiv.style.cursor = 'pointer';
-			toggleDiv.style.display = 'flex';
-			toggleDiv.style.alignItems = 'center';
-			toggleDiv.style.justifyContent = 'center';
-			toggleDiv.style.width = '22px';
-			toggleDiv.style.height = '22px';
-			toggleDiv.style.fontSize = '18px';
-
-			const textWrapper = row.createDiv();
-			textWrapper.style.display = 'flex';
-			textWrapper.style.flexDirection = 'column';
-
-			const titleDiv = textWrapper.createDiv({ cls: 'setting-item-name' });
-			titleDiv.textContent = t('setting.libraries.title');
-
-			const descDiv = textWrapper.createDiv({ cls: 'setting-item-description' });
-			descDiv.textContent = t('setting.libraries.desc', { path: this.plugin.settings.libraryPath || '' });
-
-			toggleDiv.addEventListener('click', (event) => {
-				event.preventDefault();
-				event.stopPropagation();
-				this.librariesCollapsed = !this.librariesCollapsed;
-				this.display();
-			});
-		}
+			this.plugin.settings.currentLibraryId = id;
+			await this.plugin.saveSettings();
+			await this.plugin.updateLibraryPath();
+			this.display();
+		};
 
 		const librariesDetails = librariesSection.createDiv();
 		if (this.librariesCollapsed) {
@@ -148,6 +145,9 @@ export class SampleSettingTab extends PluginSettingTab {
 		const libraries = this.plugin.settings.libraries || [];
 		libraries.forEach((lib, index) => {
 			const libContainer = librariesDetails.createDiv();
+			if (index === 0) {
+				libContainer.style.marginTop = '20px';
+			}
 			libContainer.addClass('eagle-library-item');
 			if (lib.id === this.plugin.settings.currentLibraryId) {
 				libContainer.addClass('eagle-library-active');
@@ -235,52 +235,45 @@ export class SampleSettingTab extends PluginSettingTab {
 		});
 
 		const idGroup = containerEl.createDiv();
-		const idHeader = new Setting(idGroup)
-			.setName(t('setting.group.id.title'))
-			.setDesc(t('setting.group.id.desc'));
+		idGroup.style.marginTop = '20px';
+		const idHeaderRow = idGroup.createDiv();
+		idHeaderRow.style.display = 'flex';
+		idHeaderRow.style.alignItems = 'center';
+		idHeaderRow.style.gap = '8px';
 
-		const idInfoEl = (idHeader as any).infoEl as HTMLElement;
-		if (idInfoEl) {
-			idInfoEl.empty();
-			const row = idInfoEl.createDiv();
-			row.style.display = 'flex';
-			row.style.alignItems = 'center';
-			row.style.gap = '8px';
+		const idToggleDiv = idHeaderRow.createDiv();
+		idToggleDiv.textContent = this.idGroupCollapsed ? '▸' : '▾';
+		idToggleDiv.style.cursor = 'pointer';
+		idToggleDiv.style.display = 'flex';
+		idToggleDiv.style.alignItems = 'center';
+		idToggleDiv.style.justifyContent = 'center';
+		idToggleDiv.style.width = '22px';
+		idToggleDiv.style.height = '22px';
+		idToggleDiv.style.fontSize = '18px';
 
-			const toggleDiv = row.createDiv();
-			toggleDiv.textContent = this.idGroupCollapsed ? '▸' : '▾';
-			toggleDiv.style.cursor = 'pointer';
-			toggleDiv.style.display = 'flex';
-			toggleDiv.style.alignItems = 'center';
-			toggleDiv.style.justifyContent = 'center';
-			toggleDiv.style.width = '22px';
-			toggleDiv.style.height = '22px';
-			toggleDiv.style.fontSize = '18px';
+		const idTextWrapper = idHeaderRow.createDiv();
+		idTextWrapper.style.display = 'flex';
+		idTextWrapper.style.flexDirection = 'column';
 
-			const textWrapper = row.createDiv();
-			textWrapper.style.display = 'flex';
-			textWrapper.style.flexDirection = 'column';
+		const idTitleDiv = idTextWrapper.createDiv({ cls: 'setting-item-name' });
+		idTitleDiv.textContent = t('setting.group.id.title');
 
-			const titleDiv = textWrapper.createDiv({ cls: 'setting-item-name' });
-			titleDiv.textContent = t('setting.group.id.title');
+		const idDescDiv = idTextWrapper.createDiv({ cls: 'setting-item-description' });
+		idDescDiv.textContent = t('setting.group.id.desc');
 
-			const descDiv = textWrapper.createDiv({ cls: 'setting-item-description' });
-			descDiv.textContent = t('setting.group.id.desc');
-
-			toggleDiv.addEventListener('click', (event) => {
-				event.preventDefault();
-				event.stopPropagation();
-				this.idGroupCollapsed = !this.idGroupCollapsed;
-				this.display();
-			});
-		}
+		idToggleDiv.addEventListener('click', (event) => {
+			event.preventDefault();
+			event.stopPropagation();
+			this.idGroupCollapsed = !this.idGroupCollapsed;
+			this.display();
+		});
 
 		const idBody = idGroup.createDiv();
 		if (this.idGroupCollapsed) {
 			idBody.style.display = 'none';
 		}
 
-		new Setting(idBody)
+		const folderIdSetting = new Setting(idBody)
 			.setName(t('setting.folderId.name'))
 			.setDesc(t('setting.folderId.desc'))
 			.addText(text => text
@@ -290,6 +283,8 @@ export class SampleSettingTab extends PluginSettingTab {
 					this.plugin.settings.folderId = value;
 					await this.plugin.saveSettings();
 				}));
+
+		(folderIdSetting as any).settingEl.style.marginTop = '10px';
 
 		new Setting(idBody)
 			.setName(t('setting.folderScope.name'))
@@ -303,52 +298,45 @@ export class SampleSettingTab extends PluginSettingTab {
 				}));
 
 		const imageGroup = containerEl.createDiv();
-		const imageHeader = new Setting(imageGroup)
-			.setName(t('setting.group.image.title'))
-			.setDesc(t('setting.group.image.desc'));
+		imageGroup.style.marginTop = '20px';
+		const imageHeaderRow = imageGroup.createDiv();
+		imageHeaderRow.style.display = 'flex';
+		imageHeaderRow.style.alignItems = 'center';
+		imageHeaderRow.style.gap = '8px';
 
-		const imageInfoEl = (imageHeader as any).infoEl as HTMLElement;
-		if (imageInfoEl) {
-			imageInfoEl.empty();
-			const row = imageInfoEl.createDiv();
-			row.style.display = 'flex';
-			row.style.alignItems = 'center';
-			row.style.gap = '8px';
+		const imageToggleDiv = imageHeaderRow.createDiv();
+		imageToggleDiv.textContent = this.imageGroupCollapsed ? '▸' : '▾';
+		imageToggleDiv.style.cursor = 'pointer';
+		imageToggleDiv.style.display = 'flex';
+		imageToggleDiv.style.alignItems = 'center';
+		imageToggleDiv.style.justifyContent = 'center';
+		imageToggleDiv.style.width = '22px';
+		imageToggleDiv.style.height = '22px';
+		imageToggleDiv.style.fontSize = '18px';
 
-			const toggleDiv = row.createDiv();
-			toggleDiv.textContent = this.imageGroupCollapsed ? '▸' : '▾';
-			toggleDiv.style.cursor = 'pointer';
-			toggleDiv.style.display = 'flex';
-			toggleDiv.style.alignItems = 'center';
-			toggleDiv.style.justifyContent = 'center';
-			toggleDiv.style.width = '22px';
-			toggleDiv.style.height = '22px';
-			toggleDiv.style.fontSize = '18px';
+		const imageTextWrapper = imageHeaderRow.createDiv();
+		imageTextWrapper.style.display = 'flex';
+		imageTextWrapper.style.flexDirection = 'column';
 
-			const textWrapper = row.createDiv();
-			textWrapper.style.display = 'flex';
-			textWrapper.style.flexDirection = 'column';
+		const imageTitleDiv = imageTextWrapper.createDiv({ cls: 'setting-item-name' });
+		imageTitleDiv.textContent = t('setting.group.image.title');
 
-			const titleDiv = textWrapper.createDiv({ cls: 'setting-item-name' });
-			titleDiv.textContent = t('setting.group.image.title');
+		const imageDescDiv = imageTextWrapper.createDiv({ cls: 'setting-item-description' });
+		imageDescDiv.textContent = t('setting.group.image.desc');
 
-			const descDiv = textWrapper.createDiv({ cls: 'setting-item-description' });
-			descDiv.textContent = t('setting.group.image.desc');
-
-			toggleDiv.addEventListener('click', (event) => {
-				event.preventDefault();
-				event.stopPropagation();
-				this.imageGroupCollapsed = !this.imageGroupCollapsed;
-				this.display();
-			});
-		}
+		imageToggleDiv.addEventListener('click', (event) => {
+			event.preventDefault();
+			event.stopPropagation();
+			this.imageGroupCollapsed = !this.imageGroupCollapsed;
+			this.display();
+		});
 
 		const imageBody = imageGroup.createDiv();
 		if (this.imageGroupCollapsed) {
 			imageBody.style.display = 'none';
 		}
 
-		new Setting(imageBody)
+		const imageSizeSetting = new Setting(imageBody)
 			.setName(t('setting.imageSize.name'))
 			.setDesc(t('setting.imageSize.desc'))
 			.addText(text => text
@@ -358,6 +346,8 @@ export class SampleSettingTab extends PluginSettingTab {
 					this.plugin.settings.imageSize = value ? parseInt(value) : undefined;
 					await this.plugin.saveSettings();
 				}));
+
+		(imageSizeSetting as any).settingEl.style.marginTop = '10px';
 
 		new Setting(imageBody)
 			.setName(t('setting.clickView.name'))
@@ -399,52 +389,45 @@ export class SampleSettingTab extends PluginSettingTab {
 			});
 
 		const advGroup = containerEl.createDiv();
-		const advHeader = new Setting(advGroup)
-			.setName(t('setting.group.advUri.title'))
-			.setDesc(t('setting.group.advUri.desc'));
+		advGroup.style.margin = '20px 0';
+		const advHeaderRow = advGroup.createDiv();
+		advHeaderRow.style.display = 'flex';
+		advHeaderRow.style.alignItems = 'center';
+		advHeaderRow.style.gap = '8px';
 
-		const advInfoEl = (advHeader as any).infoEl as HTMLElement;
-		if (advInfoEl) {
-			advInfoEl.empty();
-			const row = advInfoEl.createDiv();
-			row.style.display = 'flex';
-			row.style.alignItems = 'center';
-			row.style.gap = '8px';
+		const advToggleDiv = advHeaderRow.createDiv();
+		advToggleDiv.textContent = this.advGroupCollapsed ? '▸' : '▾';
+		advToggleDiv.style.cursor = 'pointer';
+		advToggleDiv.style.display = 'flex';
+		advToggleDiv.style.alignItems = 'center';
+		advToggleDiv.style.justifyContent = 'center';
+		advToggleDiv.style.width = '22px';
+		advToggleDiv.style.height = '22px';
+		advToggleDiv.style.fontSize = '18px';
 
-			const toggleDiv = row.createDiv();
-			toggleDiv.textContent = this.advGroupCollapsed ? '▸' : '▾';
-			toggleDiv.style.cursor = 'pointer';
-			toggleDiv.style.display = 'flex';
-			toggleDiv.style.alignItems = 'center';
-			toggleDiv.style.justifyContent = 'center';
-			toggleDiv.style.width = '22px';
-			toggleDiv.style.height = '22px';
-			toggleDiv.style.fontSize = '18px';
+		const advTextWrapper = advHeaderRow.createDiv();
+		advTextWrapper.style.display = 'flex';
+		advTextWrapper.style.flexDirection = 'column';
 
-			const textWrapper = row.createDiv();
-			textWrapper.style.display = 'flex';
-			textWrapper.style.flexDirection = 'column';
+		const advTitleDiv = advTextWrapper.createDiv({ cls: 'setting-item-name' });
+		advTitleDiv.textContent = t('setting.group.advUri.title');
 
-			const titleDiv = textWrapper.createDiv({ cls: 'setting-item-name' });
-			titleDiv.textContent = t('setting.group.advUri.title');
+		const advDescDiv = advTextWrapper.createDiv({ cls: 'setting-item-description' });
+		advDescDiv.textContent = t('setting.group.advUri.desc');
 
-			const descDiv = textWrapper.createDiv({ cls: 'setting-item-description' });
-			descDiv.textContent = t('setting.group.advUri.desc');
-
-			toggleDiv.addEventListener('click', (event) => {
-				event.preventDefault();
-				event.stopPropagation();
-				this.advGroupCollapsed = !this.advGroupCollapsed;
-				this.display();
-			});
-		}
+		advToggleDiv.addEventListener('click', (event) => {
+			event.preventDefault();
+			event.stopPropagation();
+			this.advGroupCollapsed = !this.advGroupCollapsed;
+			this.display();
+		});
 
 		const advBody = advGroup.createDiv();
 		if (this.advGroupCollapsed) {
 			advBody.style.display = 'none';
 		}
 
-		new Setting(advBody)
+		const advToggleSetting = new Setting(advBody)
 			.setName(t('setting.advancedId.name'))
 			.setDesc(t('setting.advancedId.desc'))
 			.addToggle((toggle) => {
@@ -454,6 +437,8 @@ export class SampleSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					});
 			});
+
+		(advToggleSetting as any).settingEl.style.marginTop = '10px';
 
 		new Setting(advBody)
 			.setName(t('setting.obsidianStoreId.name'))
