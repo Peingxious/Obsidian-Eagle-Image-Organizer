@@ -58,10 +58,41 @@ export async function handlePasteEvent(clipboardEvent: ClipboardEvent, editor: E
     } else if (filePath) {
         // 如果 filePath 存在
         clipboardEvent.preventDefault();
-        if (!filePath.startsWith(pluginInstance.settings.libraryPath)) {
+        let isEagleFile = false;
+        // 检查文件是否在当前配置的任何 Eagle 库路径中
+        const libraries = pluginInstance.settings.libraries || [];
+        for (const lib of libraries) {
+            if (lib.paths) {
+                for (const p of lib.paths) {
+                    if (p && filePath.startsWith(p)) {
+                        isEagleFile = true;
+                        break;
+                    }
+                }
+            }
+            if (isEagleFile) break;
+        }
+
+        // 如果还没找到，再检查 legacy 的 libraryPaths
+        if (!isEagleFile && pluginInstance.settings.libraryPaths) {
+                for (const p of pluginInstance.settings.libraryPaths) {
+                if (p && filePath.startsWith(p)) {
+                    isEagleFile = true;
+                    break;
+                }
+            }
+        }
+
+        // 最后检查单一的 libraryPath
+        if (!isEagleFile && pluginInstance.settings.libraryPath && filePath.startsWith(pluginInstance.settings.libraryPath)) {
+            isEagleFile = true;
+        }
+
+        if (!isEagleFile) {
             print('filePath1:', filePath);
-            // 如果 filePath 不属于 pluginInstance.settings.libraryPath 的子文件
+            // 如果 filePath 不属于任何已知的 Eagle 库路径
             try {
+
                 await uploadByClipboard(filePath, pluginInstance);
                 new Notice(t('file.upload.success'));
 
@@ -364,8 +395,39 @@ export async function handleDropEvent(dropEvent: DragEvent, editor: Editor, port
 
             print(`Drag file path: ${filePath}`);
 
-            if (!filePath.startsWith(pluginInstance.settings.libraryPath)) {
-                // 如果 filePath 不属于 pluginInstance.settings.libraryPath 的子文件
+            let isEagleFile = false;
+            // 检查文件是否在当前配置的任何 Eagle 库路径中
+            const libraries = pluginInstance.settings.libraries || [];
+            for (const lib of libraries) {
+                if (lib.paths) {
+                    for (const p of lib.paths) {
+                        if (p && filePath.startsWith(p)) {
+                            isEagleFile = true;
+                            break;
+                        }
+                    }
+                }
+                if (isEagleFile) break;
+            }
+
+            // 如果还没找到，再检查 legacy 的 libraryPaths
+            if (!isEagleFile && pluginInstance.settings.libraryPaths) {
+                 for (const p of pluginInstance.settings.libraryPaths) {
+                    if (p && filePath.startsWith(p)) {
+                        isEagleFile = true;
+                        break;
+                    }
+                }
+            }
+
+            // 最后检查单一的 libraryPath
+            if (!isEagleFile && pluginInstance.settings.libraryPath && filePath.startsWith(pluginInstance.settings.libraryPath)) {
+                isEagleFile = true;
+            }
+
+            if (!isEagleFile) {
+                // 如果 filePath 不属于任何已知的 Eagle 库路径
+
                 try {
                     await uploadByClipboard(filePath, pluginInstance);
                     new Notice(t('file.upload.success'));
