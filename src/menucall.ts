@@ -12,7 +12,7 @@ import * as path from "path";
 import { onElement } from "./onElement";
 import { print, setDebug } from "./main";
 import { exec, spawn, execSync } from "child_process";
-import { existsSync } from "fs";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import { EditorView } from "@codemirror/view";
 import { t } from "./i18n";
 import { FolderSelectModal } from "./FolderSelectModal";
@@ -738,6 +738,349 @@ export async function addEagleImageMenuPreviewMode(
 			}
 		});
 		// 其他菜单项可以继续使用 { id, name, ext } 数据
+
+		// 视频标注同步功能
+		const isVideo = [
+			"mp4",
+			"mov",
+			"avi",
+			"mkv",
+			"webm",
+			"wmv",
+			"flv",
+		].includes(ext.toLowerCase());
+
+		if (isVideo) {
+			menu.addItem((item: MenuItem) => {
+				const getEditorAndLine = (): {
+					editor: any;
+					line: number;
+					lineText: string;
+				} | null => {
+					const view =
+						plugin.app.workspace.getActiveViewOfType(MarkdownView);
+					if (!view) return null;
+					const editor = view.editor;
+
+					try {
+						// 尝试通过 DOM 位置获取
+						const editorView = (editor as any).cm as EditorView;
+						const target = getMouseEventTarget(event);
+						if (editorView.dom.contains(target)) {
+							const pos = editorView.posAtDOM(target);
+							const lineObj = editorView.state.doc.lineAt(pos);
+							return {
+								editor,
+								line: lineObj.number - 1,
+								lineText: lineObj.text,
+							};
+						}
+					} catch (e) {
+						// Ignore
+					}
+
+					// 降级策略：扫描整个文档查找链接
+					// 这可能不准确，如果有多个相同的链接
+					const lineCount = editor.lineCount();
+					for (let i = 0; i < lineCount; i++) {
+						const lineText = editor.getLine(i);
+						if (lineText.includes(oburl)) {
+							return { editor, line: i, lineText };
+						}
+						// 尝试 decode/encode
+						if (lineText.includes(decodeURI(oburl))) {
+							return { editor, line: i, lineText };
+						}
+					}
+					return null;
+				};
+
+				const downloadAction = async () => {
+					const data = getEditorAndLine();
+					if (!data) {
+						new Notice(t("menu.cannotFindLink"));
+						return;
+					}
+					const { editor, line } = data;
+
+					const comments = (imageInfo as any).comments as
+						| {
+								id?: string;
+								duration?: number;
+								annotation?: string;
+						  }[]
+						| undefined;
+
+					if (!comments || comments.length === 0) {
+						new Notice(t("menu.noAnnotationsFound"));
+						return;
+					}
+
+					const videoComments = comments.sort(
+						(a, b) => (a.duration || 0) - (b.duration || 0),
+					);
+
+					if (videoComments.length === 0) {
+						new Notice(t("menu.noAnnotationsFound"));
+						return;
+					}
+
+					const formatDuration = (seconds: number): string => {
+						const m = Math.floor(seconds / 60);
+						const s = Math.floor(seconds % 60);
+						return `${m.toString().padStart(2, "0")}:${s
+							.toString()
+							.padStart(2, "0")}`;
+					};
+
+					let block = "";
+					videoComments.forEach((c, index) => {
+						const time = c.duration
+							? formatDuration(c.duration)
+							: "00:00";
+						block += `>>[!time]- ${time}\n`;
+						const content = c.annotation || "";
+						const lines = content.split("\n");
+						lines.forEach((l) => {
+							block += `>>${l}\n`;
+						});
+						if (index < videoComments.length - 1) {
+							block += `>\n`;
+						}
+					});
+
+					// 先清除旧的标注（如果有）
+					let nextLineIdx = line + 1;
+					let linesToDelete = 0;
+					while (nextLineIdx < editor.lineCount()) {
+						const nextLine = editor.getLine(nextLineIdx);
+						if (nextLine.trim().startsWith(">")) {
+							linesToDelete++;
+							nextLineIdx++;
+						} else {
+							break;
+						}
+					}
+
+					if (linesToDelete > 0) {
+						editor.replaceRange(
+							"",
+							{ line: line + 1, ch: 0 },
+							{ line: line + 1 + linesToDelete, ch: 0 },
+						);
+					}
+
+					// 插入新的
+					const textToInsert = "\n" + block.trimEnd();
+					const lineContent = editor.getLine(line);
+					editor.replaceRange(textToInsert, {
+						line: line,
+						ch: lineContent.length,
+					});
+
+					new Notice(t("menu.annotationsDownloaded"));
+				};
+
+				const clearAction = () => {
+					const data = getEditorAndLine();
+					if (!data) return;
+					const { editor, line } = data;
+
+					let nextLineIdx = line + 1;
+					let linesToDelete = 0;
+					while (nextLineIdx < editor.lineCount()) {
+						const nextLine = editor.getLine(nextLineIdx);
+						if (nextLine.trim().startsWith(">")) {
+							linesToDelete++;
+							nextLineIdx++;
+						} else {
+							break;
+						}
+					}
+
+					if (linesToDelete > 0) {
+						editor.replaceRange(
+							"",
+							{ line: line + 1, ch: 0 },
+							{ line: line + 1 + linesToDelete, ch: 0 },
+						);
+						new Notice(t("menu.annotationsCleared"));
+					} else {
+						new Notice(t("menu.noAnnotationsFound"));
+					}
+				};
+
+				const uploadAction = async () => {
+					const data = getEditorAndLine();
+					if (!data) {
+						new Notice(t("menu.cannotFindLink"));
+						return;
+					}
+					const { editor, line } = data;
+
+					const parsedComments: {
+						duration: number;
+						annotation: string;
+					}[] = [];
+					let currentDuration: number | null = null;
+					let currentAnnotationLines: string[] = [];
+
+					let nextLineIdx = line + 1;
+					while (nextLineIdx < editor.lineCount()) {
+						const lineContent = editor.getLine(nextLineIdx);
+						const trimmed = lineContent.trim();
+
+						if (!trimmed.startsWith(">")) break;
+
+						const timeMatch = trimmed.match(
+							/^>>\[!time\]-\s*(\d{2}):(\d{2})/,
+						);
+
+						if (timeMatch) {
+							if (currentDuration !== null) {
+								parsedComments.push({
+									duration: currentDuration,
+									annotation: currentAnnotationLines
+										.join("\n")
+										.trim(),
+								});
+								currentAnnotationLines = [];
+							}
+
+							const minutes = parseInt(timeMatch[1], 10);
+							const seconds = parseInt(timeMatch[2], 10);
+							currentDuration = minutes * 60 + seconds;
+						} else if (trimmed === ">") {
+							// Separator
+						} else if (trimmed.startsWith(">>")) {
+							// Content
+							const content = lineContent.replace(
+								/^\s*>>\s?/,
+								"",
+							);
+							currentAnnotationLines.push(content);
+						}
+
+						nextLineIdx++;
+					}
+
+					if (currentDuration !== null) {
+						parsedComments.push({
+							duration: currentDuration,
+							annotation: currentAnnotationLines
+								.join("\n")
+								.trim(),
+						});
+					}
+
+					if (parsedComments.length === 0) {
+						new Notice(t("menu.noAnnotationsFound"));
+						return;
+					}
+
+					// Merge with existing comments to preserve IDs
+					const existingComments =
+						((imageInfo as any).comments as {
+							id?: string;
+							duration?: number;
+							annotation?: string;
+						}[]) || [];
+					const finalComments = parsedComments.map((pc) => {
+						// Find matching existing comment by duration
+						const match = existingComments.find(
+							(ec) =>
+								ec.duration !== undefined &&
+								Math.abs(ec.duration - pc.duration) < 1,
+						);
+						if (match && match.id) {
+							return {
+								id: match.id,
+								duration: pc.duration,
+								annotation: pc.annotation,
+							};
+						} else {
+							return {
+								duration: pc.duration,
+								annotation: pc.annotation,
+							};
+						}
+					});
+
+					const libraryPath = plugin.settings.libraryPath;
+					if (!libraryPath) {
+						new Notice("Library path not set in settings");
+						return;
+					}
+
+					const metadataPath = path.join(
+						libraryPath,
+						"images",
+						`${id}.info`,
+						"metadata.json",
+					);
+
+					if (!existsSync(metadataPath)) {
+						print("Metadata file not found at:", metadataPath);
+						new Notice(
+							t("menu.uploadAnnotationsFailed") +
+								": Metadata file not found",
+						);
+						return;
+					}
+
+					try {
+						const fileContent = readFileSync(metadataPath, "utf-8");
+						const metadata = JSON.parse(fileContent);
+
+						metadata.comments = finalComments;
+						metadata.lastModified = Date.now(); // Update modification time
+
+						writeFileSync(
+							metadataPath,
+							JSON.stringify(metadata, null, 2),
+							"utf-8",
+						);
+
+						new Notice(t("menu.uploadAnnotationsSuccess"));
+					} catch (e) {
+						print("Upload error (File Write):", e);
+						new Notice(
+							t("menu.uploadAnnotationsFailed") +
+								": " +
+								String(e),
+						);
+					}
+				};
+
+				item.setTitle(t("menu.annotationSync"))
+					.setIcon("refresh-cw")
+					.onClick(downloadAction);
+
+				if (topLevelActions) {
+					topLevelActions.push(downloadAction);
+				}
+
+				const subMenu = (item as any).setSubmenu() as Menu;
+				subMenu.addItem((subItem) =>
+					subItem
+						.setTitle(t("menu.downloadAnnotations"))
+						.setIcon("download")
+						.onClick(downloadAction),
+				);
+				subMenu.addItem((subItem) =>
+					subItem
+						.setTitle(t("menu.uploadAnnotations"))
+						.setIcon("upload")
+						.onClick(uploadAction),
+				);
+				subMenu.addItem((subItem) =>
+					subItem
+						.setTitle(t("menu.clearAnnotations"))
+						.setIcon("trash")
+						.onClick(clearAction),
+				);
+			});
+		}
 	}
 
 	menu.showAtPosition({ x: event.pageX, y: event.pageY });
@@ -1084,7 +1427,11 @@ export function updateCurTargetLinkTitle(
 	applyReplace(lineIndex, start, end);
 }
 
-export function replaceLinkTitle(link: string, newTitle: string, ext: string): string {
+export function replaceLinkTitle(
+	link: string,
+	newTitle: string,
+	ext: string,
+): string {
 	const match = link.match(/^(!?\[)([^\]]*)(\]\([^)]+\))/);
 	if (!match) return link;
 

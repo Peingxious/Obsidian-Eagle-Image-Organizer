@@ -22,6 +22,7 @@ import {
 	addCommandSynchronizedPageTabs,
 	addCommandEagleJump,
 	addCommandInsertImageFromEagle,
+	addCommandReverseSync,
 } from "./addCommand-config";
 import { existsSync } from "fs";
 import {
@@ -209,7 +210,7 @@ export default class MyPlugin extends Plugin {
 		addCommandSynchronizedPageTabs(this);
 		addCommandEagleJump(this);
 		addCommandInsertImageFromEagle(this);
-		// addCommandReverseSync(this);
+		addCommandReverseSync(this);
 
 		// 注册事件
 		this.registerEvent(
@@ -446,8 +447,8 @@ export default class MyPlugin extends Plugin {
 		}
 	}
 
-	async reverseSync(view: MarkdownView) {
-		if (!this.settings.reverseSyncOnOpen) return;
+	async reverseSync(view: MarkdownView, force: boolean = false) {
+		if (!this.settings.reverseSyncOnOpen && !force) return;
 
 		const editor = view.editor;
 		const lineCount = editor.lineCount();

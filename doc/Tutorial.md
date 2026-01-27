@@ -82,6 +82,7 @@ For images in format ```![image.png|700](http://localhost:6060/images/M7G6FALW9D
 - **Modify properties**: Modify attachment annotation, URL, and tags. Use a comma `,` to separate tags.
 - **Copy markdown link**: Makes it easy to reference links in other documents.
 - **Clear markdown link**: Quickly removes the attachment link.
+- **Annotation Sync (Video)**: For video files, supports downloading annotations from Eagle to Obsidian (as markdown callouts) and uploading modified annotations from Obsidian back to Eagle.
 
 <img src="../assets/menu.png" width="400">
 

@@ -180,4 +180,13 @@ export const zh: Record<TranslationKey, string> = {
 	"modal.folderSelect.saveSuccess": "保存成功",
 	"modal.folderSelect.saveFailed": "保存失败",
 	"menu.manageFolders": "设置项目文件夹",
+	"menu.annotationSync": "标注同步",
+	"menu.downloadAnnotations": "下载标注",
+	"menu.uploadAnnotations": "上传标注",
+	"menu.uploadAnnotationsSuccess": "标注上传成功",
+	"menu.uploadAnnotationsFailed": "标注上传失败",
+	"menu.clearAnnotations": "清空标注",
+	"menu.annotationsDownloaded": "标注已下载",
+	"menu.annotationsCleared": "标注已清空",
+	"menu.noAnnotationsFound": "未找到标注",
 };

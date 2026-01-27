@@ -171,4 +171,13 @@ export const en = {
 	"modal.folderSelect.saveSuccess": "Saved successfully",
 	"modal.folderSelect.saveFailed": "Save failed",
 	"menu.manageFolders": "Manage Project Folders",
+	"menu.annotationSync": "Annotation Sync",
+	"menu.downloadAnnotations": "Download Annotations",
+	"menu.uploadAnnotations": "Upload Annotations",
+	"menu.uploadAnnotationsSuccess": "Annotations uploaded successfully",
+	"menu.uploadAnnotationsFailed": "Failed to upload annotations",
+	"menu.clearAnnotations": "Clear Annotations",
+	"menu.annotationsDownloaded": "Annotations Downloaded",
+	"menu.annotationsCleared": "Annotations Cleared",
+	"menu.noAnnotationsFound": "No Annotations Found",
 };

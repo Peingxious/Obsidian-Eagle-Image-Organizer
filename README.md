@@ -10,6 +10,7 @@ This plugin includes the following functionalities:
 
 - Quick eagle attachment navigation in Obsidian
 - Tag synchronization
+- Video Annotation Synchronization (Upload/Download)
 - File viewing
 - Attachment management
 - Search and insert Eagle assets
