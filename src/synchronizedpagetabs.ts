@@ -8,15 +8,6 @@ export async function syncTags(app: App, settings: MyPluginSettings) {
 		// 获取当前 Markdown 文件的 YAML 标签
 		const yamlTags = getYamlTagsFromCurrentFile(app); // 例如：['tag1', 'tag2']
 
-		// 检查 advancedID 设置
-		let additionalTags: string[] = [];
-		if (settings.advancedID) {
-			const yamlId = getYamlIdFromCurrentFile(app);
-			if (yamlId) {
-				additionalTags.push(yamlId);
-			}
-		}
-
 		// 获取当前文件中所有的 .info 文件 ID
 		const infoFileIds = await getInfoFileIdsFromCurrentFile(app); // 例如：['M5U5BORKN1LNW', 'KBHG6KA0Y5S9W']
 
@@ -25,7 +16,7 @@ export async function syncTags(app: App, settings: MyPluginSettings) {
 			const currentTags = await fetchTagsForInfoFile(id);
 
 			// 合并并去重标签
-			const newTags = Array.from(new Set([...currentTags, ...yamlTags, ...additionalTags]));
+			const newTags = Array.from(new Set([...currentTags, ...yamlTags]));
 
 			// 发送更新后的标签
 			await updateTagsForInfoFile(id, newTags);
@@ -98,20 +89,4 @@ async function getInfoFileIdsFromCurrentFile(app: App): Promise<string[]> {
 	}
 
 	return Array.from(ids);
-}
-
-function getYamlIdFromCurrentFile(app: App): string | null {
-	const activeFile = app.workspace.getActiveFile();
-	if (!activeFile) {
-		new Notice(t('tags.noActiveFile'));
-		return null;
-	}
-
-	const fileCache = app.metadataCache.getFileCache(activeFile);
-	if (!fileCache || !fileCache.frontmatter) {
-		new Notice(t('tags.noYaml'));
-		return null;
-	}
-
-	return fileCache.frontmatter.id || null;
 }

@@ -26,10 +26,6 @@
 
 <img src="../assets/searchname.gif" width="600">
 
-## 另一种检索方式
-
-参考本文后的 Obsidian Advanced URI 联动介绍。
-
 # 从 Obsidian 到 Eagle
 
 当前支持通过复制和拖拽将附件从本地直接导入 Obsidian，插件会自动上传到 Eagle。图片可直接预览，有时因加载问题可能不会立即显示，需在链接后按回车即显示正常。
@@ -94,15 +90,3 @@
 文章撰写完成后，可通过```Ctrl+P```搜索```EagleBridge: synchronized-page-tabs```（或绑定快捷键）实现附件标签与`.md`中标签的一致。
 
 <img src="../assets/synch.gif" width="600">
-
-# 与 Obsidian Advanced URI 联动
-
-## 管理当前`.md`文档中的所有附件
-
-将 Obsidian Advanced URI 的 Vault 设置为 ID，通过获取当前仓库的 ID 链接，例如 ```obsidian://adv-uri?vault=adbba5532cfb5f8d&uid=c5b638b9-253b-4491-891d-3d3b3633e634```，其中仓库 ID 为```adbba5532cfb5f8d```和`.md`文件的 ID 为```c5b638b9-253b-4491-891d-3d3b3633e634```。将仓库 ID 填入设置栏```Obsidian Store ID```后，打开设置中的```Synchronizing advanced URL as a tag```选项，执行```EagleBridge: synchronized-page-tabs```，可在 Eagle 中搜索含有该标签的项目，以展示`.md`中的所有相关附件。
-
-## 检索 Eagle 图片在 Obsidian 中的位置（另一种方式）
-
-如果使用了 Obsidian Advanced URI 并将 URI 作为图片标签储存，可复制图片标签中的`.md`文件 ID ，然后在```EagleBridge：eagle-jump-obsidian```中粘贴 ID，实现跳转到对应的`.md`文档。
-
-<img src="../assets/searchid.gif" width="600">

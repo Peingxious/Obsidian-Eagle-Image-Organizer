@@ -15,28 +15,33 @@ export const zh: Record<TranslationKey, string> = {
 	"setting.libraries.removeLibrary": "删除库",
 
 	"setting.libraryPaths.title": "库路径",
-	"setting.libraryPaths.desc": "为同一个 Eagle 库配置多个路径。当前有效路径：{path}",
+	"setting.libraryPaths.desc":
+		"为同一个 Eagle 库配置多个路径。当前有效路径：{path}",
 	"setting.libraryPaths.add": "新增路径",
 	"setting.libraryPaths.pathPlaceholder": "请输入库路径",
 	"setting.libraryPaths.remove": "删除",
 
 	"setting.folderId.name": "传入指定文件夹",
-	"setting.folderId.desc": "限定上传到 Eagle 时使用的目标文件夹（填写文件夹 ID）",
+	"setting.folderId.desc":
+		"限定上传到 Eagle 时使用的目标文件夹（填写文件夹 ID）",
 	"setting.folderId.placeholder": "请输入文件夹 ID",
 
 	"setting.folderScope.name": "图片设置文件夹",
-	"setting.folderScope.desc": "只在此文件夹及其子文件夹内启用项目文件夹设置（填写文件夹 ID）",
+	"setting.folderScope.desc":
+		"只在此文件夹及其子文件夹内启用项目文件夹设置（填写文件夹 ID）",
 	"setting.folderScope.placeholder": "请输入父文件夹 ID",
 
 	"setting.projectFolderRoots.title": "项目文件夹移动设置",
-	"setting.projectFolderRoots.desc": "为设置项目文件夹移动配置多个 Eagle 文件夹 ID 及其名称。",
+	"setting.projectFolderRoots.desc":
+		"为设置项目文件夹移动配置多个 Eagle 文件夹 ID 及其名称。",
 	"setting.projectFolderRoots.add": "新增项目文件夹",
 	"setting.projectFolderRoots.namePlaceholder": "显示名称",
 	"setting.projectFolderRoots.idPlaceholder": "文件夹 ID",
 	"setting.projectFolderRoots.remove": "删除",
 
 	"setting.imageSize.name": "图片尺寸",
-	"setting.imageSize.desc": "导入图片时的默认尺寸（例如 300 表示 300 像素宽）",
+	"setting.imageSize.desc":
+		"导入图片时的默认尺寸（例如 300 表示 300 像素宽）",
 	"setting.imageSize.placeholder": "请输入图片尺寸",
 
 	"setting.clickView.name": "点击查看大图",
@@ -46,13 +51,6 @@ export const zh: Record<TranslationKey, string> = {
 	"setting.adaptiveRatio.desc": "当图片大于窗口时，按窗口大小自适应缩放。",
 	"setting.adaptiveRatio.notice": "自适应比例：{value}",
 
-	"setting.advancedId.name": "同步高级 URI 为标签",
-	"setting.advancedId.desc": "当存在页面 ID 时，将高级 URI 同步为标签。",
-
-	"setting.obsidianStoreId.name": "Obsidian 仓库 ID",
-	"setting.obsidianStoreId.desc": "高级 URI 集成使用的仓库 ID",
-	"setting.obsidianStoreId.placeholder": "请输入 Obsidian 仓库 ID",
-
 	"setting.openInObsidian.name": "在 Obsidian 中打开",
 	"setting.openInObsidian.desc": "附件在 Obsidian 中的默认打开方式",
 	"setting.openInObsidian.newPage": "在新页面中打开",
@@ -60,13 +58,23 @@ export const zh: Record<TranslationKey, string> = {
 	"setting.openInObsidian.rightPane": "在右侧面板中打开",
 
 	"setting.websiteUpload.name": "网址上传",
-	"setting.websiteUpload.desc": "将外部 URL 上传到 Eagle。注意：1）Eagle 获取封面有一定延迟；2）导出并分享给他人时可能无法正常跳转；3）本选项不影响从 Eagle 拖拽/复制到 Obsidian 的链接。",
+	"setting.websiteUpload.desc":
+		"将外部 URL 上传到 Eagle。注意：1）Eagle 获取封面有一定延迟；2）导出并分享给他人时可能无法正常跳转；3）本选项不影响从 Eagle 拖拽/复制到 Obsidian 的链接。",
+
+	"setting.reverseSyncOnOpen.name": "打开文件时反向同步",
+	"setting.reverseSyncOnOpen.desc":
+		"在打开文件时自动检查并更新当前文件中的 Eagle 链接标题（名称），避免实时同步造成的卡顿。",
+	"reverseSync.checking": "正在检查 Eagle 链接更新...",
+	"reverseSync.complete": "已更新 {count} 个 Eagle 链接。",
+	"reverseSync.upToDate": "所有 Eagle 链接已是最新。",
+	"reverseSync.fetchFailed": "获取 ID 信息失败: {id}",
 
 	"setting.group.id.title": "文件夹指定设置",
 	"setting.group.id.desc": "配置用于插入图片时的限定 Eagle 文件夹。",
 
 	"setting.folderFilter.title": "插入图片文件夹设置",
-	"setting.folderFilter.desc": "为插入图片配置多个 Eagle 文件夹 ID 及其名称。",
+	"setting.folderFilter.desc":
+		"为插入图片配置多个 Eagle 文件夹 ID 及其名称。",
 	"setting.folderFilter.add": "新增限定文件夹",
 	"setting.folderFilter.namePlaceholder": "显示名称",
 	"setting.folderFilter.idPlaceholder": "文件夹 ID",
@@ -74,10 +82,8 @@ export const zh: Record<TranslationKey, string> = {
 	"setting.folderFilter.includeSubfolders": "包含子文件夹",
 
 	"setting.group.image.title": "图片传入设置",
-	"setting.group.image.desc": "为直接传入 Obsidian 的图片设定默认行为和显示方式。",
-
-	"setting.group.advUri.title": "与 Advanced URI 联动",
-	"setting.group.advUri.desc": "当存在页面 ID 时，与 Advanced URI 插件进行联动配置。",
+	"setting.group.image.desc":
+		"为直接传入 Obsidian 的图片设定默认行为和显示方式。",
 
 	"setting.refreshServer.name": "刷新服务器",
 	"setting.refreshServer.desc": "使用最新设置重启本地服务器",

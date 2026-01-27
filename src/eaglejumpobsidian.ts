@@ -41,11 +41,9 @@ export class EagleJumpModal extends Modal {
 					if (link) {
 						// 检查链接格式
 						const eaglePattern = /^eagle:\/\/item\/([A-Z0-9]+)$/;
-						const uuidPattern = /^.+$/; // 匹配任意非空字符串
 						const imagePattern = /http:\/\/localhost:\d+\/images\/([A-Z0-9]+)\.info/;
 
 						const eagleMatch = link.match(eaglePattern);
-						const uuidMatch = link.match(uuidPattern);
 						const imageMatch = link.match(imagePattern);
 
 						if (eagleMatch || imageMatch) {
@@ -69,12 +67,6 @@ export class EagleJumpModal extends Modal {
 							} else {
 								new Notice(t('modal.eagleJump.cannotExtractId'));
 							}
-						} else if (uuidMatch) {
-							// 如果是 UUID 格式，构建 obsidian://adv-uri 链接
-							const obsidianStoreId = this.settings.obsidianStoreId;
-							const advUri = `obsidian://adv-uri?vault=${obsidianStoreId}&uid=${link}`;
-							print(`Run link: ${advUri}`);
-							window.open(advUri, '_blank');
 						} else {
 							new Notice(t('modal.eagleJump.invalidLink'));
 						}

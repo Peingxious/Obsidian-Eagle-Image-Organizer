@@ -267,7 +267,7 @@ function proxyToEagle(
 	clientRes: http.ServerResponse,
 ) {
 	const options: http.RequestOptions = {
-		hostname: "localhost",
+		hostname: "127.0.0.1",
 		port: 41595,
 		path: pathWithQuery,
 		method: clientReq.method,

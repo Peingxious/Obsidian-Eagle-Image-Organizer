@@ -26,10 +26,6 @@ Right-click on an image in Eagle, choose to copy the link, then open Obsidian. U
 
 <img src="../assets/searchname.gif" width="800">
 
-## Alternative Retrieval Method
-
-See the section on integration with Obsidian Advanced URI.
-
 # From Obsidian to Eagle
 
 Currently, attachments can be copied and dragged from a local source into Obsidian, and the plugin will automatically upload them to Eagle. Images can be previewed directly; occasionally, due to loading issues, images might not display immediately. Press enter after the link to display them normally.
@@ -94,15 +90,3 @@ For images in format ```![image.png|700](http://localhost:6060/images/M7G6FALW9D
 After finishing an article, use ```Ctrl+P``` to search for ```EagleBridge: synchronized-page-tabs``` (or bind to a hotkey) and synchronize attachment tags with those in the `.md` file.
 
 <img src="../assets/synch.gif" width="800">
-
-# Integration with Obsidian Advanced URI
-
-## Manage all attachments in the current `.md` document
-
-Set Obsidian Advanced URI’s vault to ID by obtaining the current vault's ID link, e.g., ```obsidian://adv-uri?vault=adbba5532cfb5f8d&uid=c5b638b9-253b-4491-891d-3d3b3633e634```, where the vault ID is ```adbba5532cfb5f8d``` and the `.md` file's ID is ```c5b638b9-253b-4491-891d-3d3b3633e634```. Enter the vault ID into the settings under ```Obsidian Store ID```. Later, enable ```Synchronizing advanced URL as a tag``` in settings and execute ```EagleBridge: synchronized-page-tabs``` to have the `.md` file's ID as ```c5b638b9-253b-4491-891d-3d3b3633e634``` a tag. This allows searching in Eagle for projects with that tag, displaying all related attachments.
-
-## Locate Eagle Images in Obsidian (Alternative Method)
-
-If using Obsidian Advanced URI and storing the URI as the image tag, you can copy the `.md` file ID from the image tag and paste it into ```EagleBridge:eagle-jump-obsidian``` to locate the corresponding `.md` document.
-
-<img src="../assets/searchid.gif" width="800">
