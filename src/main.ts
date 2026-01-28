@@ -11,6 +11,7 @@ import {
 	TFile,
 	Platform,
 	FileStats,
+	debounce,
 } from "obsidian";
 import { t } from "./i18n";
 import { startServer, refreshServer, stopServer } from "./server";
@@ -34,9 +35,6 @@ import { handleImageClick, removeZoomedImage } from "./Leftclickimage";
 import {
 	handleLinkClick,
 	eagleImageContextMenuCall,
-	registerEscapeButton,
-	addEagleImageMenuSourceMode,
-	addEagleImageMenuPreviewMode,
 	fetchImageInfo,
 	findLinkInLine,
 	replaceLinkTitle,
@@ -63,7 +61,7 @@ export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
 
 	async onload() {
-		console.log("加载 Eagle-Embed 插件");
+		console.log("加载 eagle-image-organizer 插件");
 
 		await this.loadSettings();
 
@@ -214,112 +212,16 @@ export default class MyPlugin extends Plugin {
 
 		// 注册事件
 		this.registerEvent(
-			this.app.workspace.on("active-leaf-change", async (leaf) => {
-				if (leaf?.view instanceof MarkdownView) {
-					await this.reverseSync(leaf.view as MarkdownView);
-				}
-			}),
+			this.app.workspace.on(
+				"active-leaf-change",
+				debounce(async (leaf) => {
+					if (leaf?.view instanceof MarkdownView) {
+						await this.reverseSync(leaf.view as MarkdownView);
+					}
+				}, 200),
+			),
 		);
 		// 添加自定义样式，确保样式包含编辑模式特定样式
-		const style = document.createElement("style");
-		style.textContent = `
-			.menu-item {
-				max-width: 800px;
-				white-space: normal;
-				word-wrap: break-word;
-			}
-			
-			.eagle-embed-hide {
-				display: none !important;
-			}
-			
-			.eagle-embed-container {
-				margin: 10px 0;
-				border-radius: 5px;
-				overflow: hidden;
-				background: var(--background-primary);
-				border: 1px solid var(--background-modifier-border);
-				width: 100%;
-			}
-			.eagle-library-header,.eagle-path-setting {
-				padding: 0;
-			}
-			.eagle-embed-container iframe {
-				display: block;
-				width: 100%;
-				height: 500px;
-				border: none;
-			}
-			
-			.cm-embed-block {
-				margin: 0.5em 0;
-				width: 100%;
-			}
-			
-			.eagle-embed-placeholder {
-				background: var(--background-secondary);
-				border-radius: 5px;
-				padding: 1em;
-				text-align: center;
-				margin: 0.5em 0;
-			}
-			
-			.eagle-embed-error {
-				background: rgba(255, 0, 0, 0.1);
-				border: 1px solid rgba(255, 0, 0, 0.3);
-				color: #ff0000;
-				padding: 1em;
-				text-align: center;
-				margin: 0.5em 0;
-				border-radius: 5px;
-			}
-
-			.eagle-library-block {
-				margin-top: 8px;
-				padding: 8px 12px 10px;
-				border-radius: 6px;
-				background: var(--background-secondary);
-			}
-
-			.eagle-library-block .setting-item {
-				margin: 4px 0;
-			}
-
-			.eagle-library-header .setting-item-info {
-				display: none;
-			}
-
-			.eagle-library-header .setting-item-control {
-				flex: 1;
-				display: flex;
-				align-items: center;
-				gap: 6px;
-			}
-
-			.eagle-library-header input[type="text"] {
-				flex: 1;
-			}
-
-			.eagle-library-path .setting-item-info {
-				display: none;
-			}
-
-			.eagle-library-path .setting-item-control {
-				flex: 1;
-				display: flex;
-				align-items: center;
-				gap: 6px;
-			}
-
-			.eagle-library-path input[type="text"] {
-				flex: 1;
-			}
-
-			.eagle-library-active {
-				border: 1px solid var(--interactive-accent);
-			}
-		`;
-		document.head.appendChild(style);
 	}
 
 	onunload() {

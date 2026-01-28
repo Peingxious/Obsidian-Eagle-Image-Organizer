@@ -27,15 +27,13 @@ export async function handlePasteEvent(clipboardEvent: ClipboardEvent, editor: E
         if (!filePath) { // 如果 filePath 不存在
             const tempDir = os.tmpdir(); // 使用 os.tmpdir() 获取临时目录
             const uploadDir = path.join(tempDir, 'obsidian-uploads');
-            if (!fs.existsSync(uploadDir)) {
-                fs.mkdirSync(uploadDir);
-            }
+            await fs.promises.mkdir(uploadDir, { recursive: true });
 
             // 将文件保存到临时目录
             filePath = path.join(uploadDir, file.name);
             // console.log('File path2:', filePath); // 在控制台打印文件路径
             const buffer = await file.arrayBuffer();
-            fs.writeFileSync(filePath, Buffer.from(buffer));
+            await fs.promises.writeFile(filePath, Buffer.from(buffer));
         }
     }
     

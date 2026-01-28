@@ -18,28 +18,11 @@ import { t } from "./i18n";
 import { FolderSelectModal } from "./FolderSelectModal";
 import { ModifyPropertiesModal } from "./ModifyPropertiesModal";
 
-export function handleLinkClick(
+export function createEagleMenu(
 	plugin: MyPlugin,
-	event: MouseEvent,
-	url: string,
-) {
+	topLevelActions: Array<() => void>,
+): Menu {
 	const menu = new Menu();
-	const inPreview =
-		plugin.app.workspace.getActiveViewOfType(MarkdownView)?.getMode() ==
-		"preview";
-	const topLevelActions: Array<() => void> = [];
-	if (inPreview) {
-		addEagleImageMenuPreviewMode(
-			plugin,
-			menu,
-			url,
-			event,
-			false,
-			topLevelActions,
-		);
-	} else {
-		addEagleImageMenuSourceMode(plugin, menu, url, event, topLevelActions);
-	}
 	registerEscapeButton(plugin, menu);
 	menu.register(
 		onElement(
@@ -60,11 +43,48 @@ export function handleLinkClick(
 			},
 		),
 	);
+	return menu;
+}
+
+export async function handleLinkClick(
+	plugin: MyPlugin,
+	event: MouseEvent,
+	url: string,
+) {
+	const topLevelActions: Array<() => void> = [];
+	const menu = createEagleMenu(plugin, topLevelActions);
+
+	const inPreview =
+		plugin.app.workspace.getActiveViewOfType(MarkdownView)?.getMode() ==
+		"preview";
+
+	if (inPreview) {
+		await addEagleImageMenuPreviewMode(
+			plugin,
+			menu,
+			url,
+			event,
+			false,
+			topLevelActions,
+		);
+	} else {
+		await addEagleImageMenuSourceMode(
+			plugin,
+			menu,
+			url,
+			event,
+			topLevelActions,
+		);
+	}
+
 	let offset = 0;
 	menu.showAtPosition({ x: event.pageX, y: event.pageY + offset });
 }
 
-export function eagleImageContextMenuCall(this: MyPlugin, event: MouseEvent) {
+export async function eagleImageContextMenuCall(
+	this: MyPlugin,
+	event: MouseEvent,
+) {
 	const img = event.target as HTMLImageElement;
 	const inTable: boolean = img.closest("table") != null;
 	const inCallout: boolean = img.closest(".callout") != null;
@@ -75,13 +95,16 @@ export function eagleImageContextMenuCall(this: MyPlugin, event: MouseEvent) {
 	this.app.workspace.getActiveViewOfType(MarkdownView)?.editor?.blur();
 	img.classList.remove("image-ready-click-view", "image-ready-resize");
 	const url = img.src;
-	const menu = new Menu();
+
+	const topLevelActions: Array<() => void> = [];
+	const menu = createEagleMenu(this, topLevelActions);
+
 	const inPreview =
 		this.app.workspace.getActiveViewOfType(MarkdownView)?.getMode() ==
 		"preview";
-	const topLevelActions: Array<() => void> = [];
+
 	if (inPreview) {
-		addEagleImageMenuPreviewMode(
+		await addEagleImageMenuPreviewMode(
 			this,
 			menu,
 			url,
@@ -90,28 +113,15 @@ export function eagleImageContextMenuCall(this: MyPlugin, event: MouseEvent) {
 			topLevelActions,
 		);
 	} else {
-		addEagleImageMenuSourceMode(this, menu, url, event, topLevelActions);
+		await addEagleImageMenuSourceMode(
+			this,
+			menu,
+			url,
+			event,
+			topLevelActions,
+		);
 	}
-	registerEscapeButton(this, menu);
-	menu.register(
-		onElement(
-			activeDocument,
-			"keydown" as keyof HTMLElementEventMap,
-			"*",
-			(e: KeyboardEvent) => {
-				if (e.key >= "1" && e.key <= "9") {
-					const index = parseInt(e.key, 10) - 1;
-					const action = topLevelActions[index];
-					if (action) {
-						e.preventDefault();
-						e.stopPropagation();
-						action();
-						menu.hide();
-					}
-				}
-			},
-		),
-	);
+
 	let offset = 0;
 	if (!inPreview && (inTable || inCallout)) offset = -138;
 	menu.showAtPosition({ x: event.pageX, y: event.pageY + offset });
@@ -1083,7 +1093,7 @@ export async function addEagleImageMenuPreviewMode(
 		}
 	}
 
-	menu.showAtPosition({ x: event.pageX, y: event.pageY });
+	// menu.showAtPosition({ x: event.pageX, y: event.pageY });
 }
 
 export async function addEagleImageMenuSourceMode(
@@ -1101,7 +1111,7 @@ export async function addEagleImageMenuSourceMode(
 		true,
 		topLevelActions,
 	);
-	menu.showAtPosition({ x: event.pageX, y: event.pageY });
+	// menu.showAtPosition({ x: event.pageX, y: event.pageY });
 }
 
 function copyFileToClipboardCMD(filePath: string) {

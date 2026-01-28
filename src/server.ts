@@ -3,13 +3,22 @@ import * as fs from "fs";
 import * as path from "path";
 import chokidar from "chokidar";
 import { EventEmitter } from "events";
+import { Notice } from "obsidian";
 import { print, setDebug } from "./main";
 
 let server: http.Server;
 let isServerRunning = false;
 let latestDirUrl: string | null = null;
+let watcher: chokidar.FSWatcher | null = null;
 
 const urlEmitter = new EventEmitter();
+
+// Cache for metadata.json to avoid frequent disk I/O and parsing
+// Key: folder path, Value: { name: string, ext: string, mtime: number }
+const metadataCache = new Map<
+	string,
+	{ name: string; ext: string; mtime: number }
+>();
 
 // let exportedData: { imageName?: string; annotation?: string } = {};
 
@@ -72,7 +81,7 @@ export function startServer(libraryPath: string, port: number) {
 	const imagesPath = path.join(libraryPath, "images");
 
 	// 使用 chokidar 监控 images 目录中新建的文件夹
-	const watcher = chokidar.watch(imagesPath, {
+	watcher = chokidar.watch(imagesPath, {
 		ignored: /(^|[\/\\])\../, // 忽略隐藏文件
 		persistent: true,
 		depth: 1, // 只监控一级目录
@@ -145,28 +154,20 @@ export function startServer(libraryPath: string, port: number) {
 			if (stats.isDirectory()) {
 				const jsonFilePath = path.join(filePath, "metadata.json");
 
-				// 新增：检查 metadata.json 是否存在
-				if (!fs.existsSync(jsonFilePath)) {
-					res.writeHead(404).end();
-					return;
-				}
-
-				fs.readFile(jsonFilePath, "utf8", (err, data) => {
+				fs.stat(jsonFilePath, (err, jsonStats) => {
 					if (err) {
-						console.error("Error reading JSON file:", err);
-						res.writeHead(500, { "Content-Type": "text/plain" });
-						res.end("Internal Server Error");
-					} else {
-						try {
-							const info = JSON.parse(data);
-							const imageName = info.name;
-							// exportedData.imageName = imageName;
-							// const annotation = info.annotation;
-							// exportedData.annotation = annotation;
-							const imageExt = info.ext;
-							const imageFile = `${imageName}.${imageExt}`;
-							const imagePath = path.join(filePath, imageFile);
+						res.writeHead(404).end();
+						return;
+					}
 
+					const serveImage = (
+						imageName: string,
+						imageExt: string,
+					) => {
+						const imageFile = `${imageName}.${imageExt}`;
+						const imagePath = path.join(filePath, imageFile);
+
+						if (imageExt === "url") {
 							fs.readFile(imagePath, (err, data) => {
 								if (err) {
 									console.error("Error reading file:", err);
@@ -175,70 +176,132 @@ export function startServer(libraryPath: string, port: number) {
 									});
 									res.end("File not found");
 								} else {
-									if (imageExt === "url") {
-										const content = data.toString("utf8");
-										const urlMatch =
-											content.match(/URL=(.+)/i);
-										if (urlMatch && urlMatch[1]) {
-											res.writeHead(302, {
-												Location: urlMatch[1],
-											});
-											res.end();
-											return;
-										}
-									}
-									const contentType = getContentType(
-										`.${imageExt}`,
-									);
-									if (contentType === null) {
-										res.writeHead(204);
+									const content = data.toString("utf8");
+									const urlMatch = content.match(/URL=(.+)/i);
+									if (urlMatch && urlMatch[1]) {
+										res.writeHead(302, {
+											Location: urlMatch[1],
+										});
 										res.end();
-										return;
+									} else {
+										res.writeHead(204).end();
 									}
-									res.writeHead(200, {
-										"Content-Type": contentType,
-									});
-									res.end(data);
 								}
 							});
-						} catch (parseErr) {
-							console.error("Error parsing JSON:", parseErr);
+							return;
+						}
+
+						// Use stream for media files to reduce memory usage
+						const stream = fs.createReadStream(imagePath);
+
+						stream.on("error", (err) => {
+							console.error("Error reading file stream:", err);
+							if (!res.headersSent) {
+								res.writeHead(404, {
+									"Content-Type": "text/plain",
+								});
+								res.end("File not found");
+							}
+						});
+
+						stream.on("open", () => {
+							const contentType = getContentType(`.${imageExt}`);
+							if (contentType === null) {
+								if (!res.headersSent) res.writeHead(204);
+								stream.close(); // Close stream if not used
+								res.end();
+								return;
+							}
+							res.writeHead(200, { "Content-Type": contentType });
+							stream.pipe(res);
+						});
+					};
+
+					// Cache check
+					const cached = metadataCache.get(jsonFilePath);
+					if (cached && cached.mtime >= jsonStats.mtimeMs) {
+						serveImage(cached.name, cached.ext);
+						return;
+					}
+
+					fs.readFile(jsonFilePath, "utf8", (err, data) => {
+						if (err) {
+							console.error("Error reading JSON file:", err);
 							res.writeHead(500, {
 								"Content-Type": "text/plain",
 							});
-							res.end("Error parsing JSON");
+							res.end("Internal Server Error");
+						} else {
+							try {
+								const info = JSON.parse(data);
+								const imageName = info.name;
+								const imageExt = info.ext;
+
+								// Update cache
+								metadataCache.set(jsonFilePath, {
+									name: imageName,
+									ext: imageExt,
+									mtime: jsonStats.mtimeMs,
+								});
+
+								serveImage(imageName, imageExt);
+							} catch (parseErr) {
+								console.error("Error parsing JSON:", parseErr);
+								res.writeHead(500, {
+									"Content-Type": "text/plain",
+								});
+								res.end("Error parsing JSON");
+							}
 						}
-					}
+					});
 				});
 			} else {
 				// 新增：缓存验证头
 				res.setHeader("Cache-Control", "public, max-age=604800"); // 1 week
 
-				fs.readFile(filePath, (err, data) => {
-					if (err) {
-						// console.error('Error reading file:', err);
-						res.writeHead(500, { "Content-Type": "text/plain" });
-						res.end("Internal Server Error");
-					} else {
-						const ext = path.extname(filePath).toLowerCase();
-						const contentType = getContentType(ext);
-						if (contentType === null) {
-							res.writeHead(204);
-							res.end();
-							return;
-						}
-						if (ext === ".url") {
+				const ext = path.extname(filePath).toLowerCase();
+				if (ext === ".url") {
+					fs.readFile(filePath, (err, data) => {
+						if (err) {
+							// console.error('Error reading file:', err);
+							res.writeHead(500, {
+								"Content-Type": "text/plain",
+							});
+							res.end("Internal Server Error");
+						} else {
 							const content = data.toString("utf8");
 							const urlMatch = content.match(/URL=(.+)/i);
 							if (urlMatch && urlMatch[1]) {
 								res.writeHead(302, { Location: urlMatch[1] });
 								res.end();
-								return;
+							} else {
+								res.writeHead(204).end();
 							}
 						}
-						res.writeHead(200, { "Content-Type": contentType });
-						res.end(data);
+					});
+					return;
+				}
+
+				const stream = fs.createReadStream(filePath);
+
+				stream.on("error", (err) => {
+					// console.error('Error reading file:', err);
+					if (!res.headersSent) {
+						res.writeHead(404, { "Content-Type": "text/plain" });
+						res.end("File not found");
 					}
+				});
+
+				stream.on("open", () => {
+					const contentType = getContentType(ext);
+					if (contentType === null) {
+						if (!res.headersSent) res.writeHead(204);
+						stream.close();
+						res.end();
+						return;
+					}
+					res.writeHead(200, { "Content-Type": contentType });
+					stream.pipe(res);
 				});
 			}
 		});
@@ -307,21 +370,35 @@ function proxyToEagle(
 }
 
 export function refreshServer(libraryPath: string, port: number) {
-	if (!isServerRunning) return;
-	server.close(() => {
-		isServerRunning = false;
-		print("Server stopped for refresh.");
-		startServer(libraryPath, port);
-	});
+	if (isServerRunning) {
+		stopServer();
+	}
+	print("Server restarting...");
+	startServer(libraryPath, port);
 }
 
 export function stopServer() {
-	if (isServerRunning) {
+	if (watcher) {
+		watcher
+			.close()
+			.then(() => {
+				print("Watcher closed.");
+			})
+			.catch((err) => {
+				console.error("Error closing watcher:", err);
+			});
+		watcher = null;
+	}
+
+	if (isServerRunning && server) {
 		server.close(() => {
 			isServerRunning = false;
 			print("Server stopped.");
 		});
 	}
+
+	// Clear metadata cache to prevent stale data when library changes
+	metadataCache.clear();
 }
 
 export function getLatestDirUrl(): string | null {
