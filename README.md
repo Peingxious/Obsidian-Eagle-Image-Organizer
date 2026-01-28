@@ -8,151 +8,97 @@ This is a sample plugin for Obsidian, designed to integrate Obsidian with the Ea
 
 This plugin includes the following functionalities:
 
-- Quick eagle attachment navigation in Obsidian
-- Tag synchronization
-- Reverse Sync (Update link titles)
-- Video Annotation Synchronization (Upload/Download)
-- File viewing
-- Attachment management
-- Search and insert Eagle assets
+- **Asset Insertion**: Search and insert Eagle assets directly in Obsidian.
+- **Drag & Drop Upload**: Drag local images into notes to automatically upload them to Eagle.
+- **Reverse Sync**: Automatically or manually update Eagle link titles in notes to match Eagle filenames.
+- **Tag Synchronization**: Sync Eagle asset tags to Obsidian notes.
+- **Asset Management**: Modify Eagle asset properties (name, tags, annotations, etc.) or move folders directly from Obsidian.
+- **Multi-Library Support**: Configure multiple Eagle library paths to support multi-device synchronization environments.
 
 [![GitHub stars](https://img.shields.io/github/stars/zyjGraphein/Obsidian-EagleBridge?style=flat&label=Stars)](https://github.com/zyjGraphein/Obsidian-EagleBridge/stargazers)
 [![Total Downloads](https://img.shields.io/github/downloads/zyjGraphein/Obsidian-EagleBridge/total?style=flat&label=Total%20Downloads)](https://github.com/zyjGraphein/Obsidian-EagleBridge/releases)
 [![GitHub Release](https://img.shields.io/github/v/release/zyjGraphein/Obsidian-EagleBridge?style=flat&label=Release)](https://github.com/zyjGraphein/Obsidian-EagleBridge/releases/latest)
-![GitHub Downloads (specific asset, all releases)|150](https://img.shields.io/github/downloads/zyjGraphein/Obsidian-EagleBridge/main.js)
-![GitHub Downloads (specific asset, latest release)](https://img.shields.io/github/downloads/zyjGraphein/Obsidian-EagleBridge/latest/main.js)
-[![GitHub License](https://img.shields.io/github/license/zyjGraphein/Obsidian-EagleBridge?style=flat&label=License)](https://github.com/zyjGraphein/Obsidian-EagleBridge/blob/master/LICENSE)
-[![GitHub Issues](https://img.shields.io/github/issues/zyjGraphein/Obsidian-EagleBridge?style=flat&label=Issues)](https://github.com/zyjGraphein/Obsidian-EagleBridge/issues)
-[![GitHub Last Commit](https://img.shields.io/github/last-commit/zyjGraphein/Obsidian-EagleBridge?style=flat&label=Last%20Commit)](https://github.com/zyjGraphein/Obsidian-EagleBridge/commits/master)
 
 ## Initial Setup Instructions
 
-1. **Configure the Listening Port**: Set a four-digit, complex value between 1000 and 9999 (e.g., 6060) to avoid conflicts with common port numbers. Once set, it is recommended not to change it to ensure stable attachment links.
+1.  **Configure Eagle Libraries**:
+    - Go to plugin settings and click **+** to add a library.
+    - Enter a library name and provide the absolute path to the Eagle library folder (ending in `.library`) in **Library Paths**.
+    - You can add multiple paths for the same library to handle drive letter differences across computers.
+    - Click the checkmark icon next to the library name to set it as active.
 
-2. **Set Eagle Library Location**: Select the library in the top left corner of the Eagle software and copy its path, for example: `D:\onedrive\eagle\Library`.
+2.  **Configure Listening Port**:
+    - Default is `6060`. Ensure it does not conflict with other services (Eagle currently does not support custom API ports, so keeping the default is recommended).
 
-You need to restart Obsidian after completing these configurations, and then you can start using the plugin.
+After configuration, it is recommended to restart Obsidian to ensure the service starts correctly.
 
-## Showcase
-
-### Load Attachments from Eagle
-
-<img src="assets/fromeagle.gif" width="800">
-
-### Upload Local Attachments to Eagle via EagleBridge and View in Obsidian
-
-<img src="assets/upload.gif" width="800">
+## Core Features Showcase
 
 ### Search and Insert Eagle Assets
 
-Run `Eagle Bridge: Insert Image from Eagle` via Command Palette (hotkey recommended) to open the search window:
+Run `Insert Image From Eagle` via Command Palette (hotkey recommended):
 
-- **Multi-keyword Search**: Support multiple keywords (space-separated) in any order (e.g., `Poster Japanese`).
-- **Keyboard Navigation**: Use `Arrow Up`/`Arrow Down` to select and `Enter` to insert.
-- **Thumbnail Preview**: Direct preview of asset thumbnails, with support for more formats like BMP/TIFF.
-- **Link Format**: Inserted links point directly to the local server, ensuring perfect display in Obsidian.
+- **Multi-keyword Search**: Support space-separated keywords.
+- **Folder Filters**: Configure frequently used folders in settings for quick filtering.
+- **Keyboard Navigation**: `↑` `↓` to select, `Enter` to insert.
+
+### Upload Local Files to Eagle
+
+- Drag or paste local images into Obsidian notes; the plugin automatically uploads them to Eagle and generates a preview link.
+- You can specify a target **Folder ID** in settings.
+
+### Reverse Sync
+
+- Enable `Reverse Sync on Open` to automatically update link titles when opening notes.
+- Or manually run the `Reverse Sync Eagle Links in Current File` command.
 
 ## Folder-related Settings
 
-On the settings page, the plugin provides three folder-related blocks under "Folder Settings":
+The plugin provides three types of folder configurations in settings:
 
-- **Incoming Target Folder**  
-  Configure a fixed Eagle folder ID that will be used as the default
-  destination when you upload files to Eagle from Obsidian.
+- **Incoming Target Folder**
+    - Specifies the default folder ID in Eagle for files uploaded from Obsidian.
 
-- **Project Folder Move Settings**  
-  Configure multiple project root folders for the "Set Project Folder" dialog:
-    - You can define multiple project roots (for example: `Social`, `Notes`),
-      each being an Eagle folder ID.
-    - The dialog shows an "All" tab and one tab per project root, and only
-      subfolders of the active project are listed.
-    - If you select a project tab but do not check any subfolders, items will
-      be saved into that project root folder; if you check subfolders, items
-      will be moved / recorded into those subfolders instead.
-    - A single asset can be assigned to multiple project folders.
+- **Project Folder Roots**
+    - Roots for managing asset moves.
+    - Subfolders under these roots will appear as options in the "Manage Folders" context menu, facilitating quick asset classification.
 
-- **Insert Image Folder Settings**  
-  Provide multi-folder filtering for the "Insert Image from Eagle" search
-  dialog:
-    - You can configure multiple Eagle folder IDs used when inserting images;
-      each entry appears as a switchable filter tab at the top of the dialog.
-    - The "All" tab searches across all configured folders (and their
-      subfolders), while the other tabs only search within the corresponding
-      folder subtree.
-    - Each entry has an "Include subfolders" toggle on the right (enabled by
-      default, without text label, with a tooltip on hover). When enabled,
-      search includes the folder and all its subfolders; when disabled, only
-      the current folder is searched.
+- **Folder Filters**
+    - Provides filter tabs for the "Insert Image From Eagle" search window.
+    - Configured folders appear as tabs at the top of the search window; clicking one restricts search to that folder (and its subfolders).
 
 ## Installation Instructions
 
 ### Install via BRAT
 
-Add `https://github.com/zyjGraphein/Obsidian-EagleBridge` to [BRAT](https://github.com/TfTHacker/obsidian42-brat).
+Add `https://github.com/zyjGraphein/Obsidian-Eagle-Image-Organizer` to [BRAT](https://github.com/TfTHacker/obsidian42-brat).
 
 ### Manual Installation
 
-Visit the latest release page, download `main.js`, `manifest.json`, and `style.css`, then place them into `<your_vault>/.obsidian/plugins/EagleBridge/`.
+Visit the latest release page, download `main.js`, `manifest.json`, and `style.css`, and place them into `<your_vault>/.obsidian/plugins/Obsidian-Eagle-Image-Organizer/`.
 
 ## Usage Guide
 
 - Text Tutorial ([中文](doc/TutorialZH.md) / [EN](doc/Tutorial.md))
 - Video Tutorial ([Obsidian EagleBridge -bilibili](https://www.bilibili.com/video/BV1voQsYaE5W/?share_source=copy_web&vd_source=491bedf306ddb53a3baa114332c02b93))
 
-### Notes
+## Notes
 
-- When using the plugin, Eagle must be running in the background, and the open state should correspond to the repository at the specified path.
-- If Eagle is not running or is not in the target path repository, you can still view images, but the context menu functions and attachment uploads to Eagle will not work.
-- When exporting notes as a PDF, images will display correctly, but other links (URLs, PDFs, MP4s) will still be clickable. However, when shared with others (outside the local environment), these links may not open.
-
-## Development Guide
-
-This plugin follows the structure of the [Obsidian Sample Plugin](https://github.com/obsidianmd/obsidian-sample-plugin). More details can be found there.
-
-- Clone this repository
-- Ensure your NodeJS is at least v16 (`node --version`)
-- Run `npm i` or `yarn` to install dependencies
-- Run `npm run dev` to start the compiler in watch mode
-
-## To-Do List
-
-- [x] Support embedded previews for various file formats (e.g., PDF, MP4, PSD, OBJ, etc.)
-- [ ] Add support for macOS.
-- [ ] Support updating position when dragging.
-- [ ] When exporting, replace all attachment links and export all attachments to a folder.
-
-## Known Limitations
-
-Currently, there is no effective method to prevent accidental deletion of attachments when traversing all file references. It is recommended to delete within Eagle and use ID retrieval to remove links in `.md` files.
-
-## Issues and Suggestions
-
-You are welcome to submit issues for:
-
-- Bug reports
-- Ideas for new features
-- Optimizations for existing features
-
-If you are considering developing a large feature, please contact me first so we can determine if it is a good fit for this plugin.
+- Eagle must be running in the background when using this plugin.
+- If Eagle is not running, images may not preview, and upload/management features will fail.
+- Images are visible in exported PDFs, but dynamic links (video/audio) will not be accessible outside the local environment.
 
 ## Credits
 
-This plugin also utilizes API calls from [eagle](https://api.eagle.cool/) to enable viewing, editing, and uploading of Eagle content.
-
-The right-click functionality and image zooming in this plugin draw inspiration from [AttachFlow](https://github.com/Yaozhuwa/AttachFlow)
-
-Video and PDF external link embedding previews are inspired by the corresponding features of [auto-embed](https://github.com/GnoxNahte/obsidian-auto-embed).
-
-Additionally, it is also inspired by some features from[PicGo+Eagle+Python](https://zhuanlan.zhihu.com/p/695526765), [obsidian-auto-link-title](https://github.com/zolrath/obsidian-auto-link-title) and [obsidian-image-auto-upload-plugin](https://github.com/renmu123/obsidian-image-auto-upload-plugin).
-
-Additionally, support from the Obsidian forum ([get-the-source-path-when-drag-and-drop-or-copying-a-file-image-from-outside](https://forum.obsidian.md/t/how-to-get-the-source-path-when-drag-and-drop-or-copying-a-file-image-from-outside/96437)) helped in implementing the ability to capture file sources via copying or dragging.
+- Built on [Eagle API](https://api.eagle.cool).
+- Inspired by [AttachFlow](https://github.com/Yaozhuwa/AttachFlow) (Context menu/Zoom) and [auto-embed](https://github.com/GnoxNahte/obsidian-auto-embed) (Embedded preview).
 
 ## License
 
-This project is licensed under the [GNU General Public License v3 (GPL-3.0)](https://github.com/zyjGraphein/EagleBridge/blob/master/LICENSE).
+[GNU GPL v3](https://github.com/zyjGraphein/Obsidian-Eagle-Image-Organizer/blob/master/LICENSE)
 
 ## Support
 
-If you appreciate this plugin and want to say thanks, you can buy me a coffee!
+If you like this plugin, you can buy me a coffee!
 
 <img src="assets/coffee.png" width="400">

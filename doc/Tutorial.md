@@ -1,102 +1,83 @@
-# Port Number and Library Path Configuration
+# Obsidian Eagle Image Organizer User Guide
 
-When using for the first time, you need to configure the listening port number, which should be a complex four-digit number ranging from `1000` to `9999` (e.g., `6060`) to avoid conflicts with commonly used port numbers. Once set, it is not recommended to change this to ensure the stability of attachment links.
+This plugin seamlessly connects Obsidian with your Eagle library, supporting fast insertion, management, and synchronization of images, videos, audio, and more.
 
-Additionally, you should configure the location of the Eagle library. Select the library in the top-left corner of the Eagle application and copy the path, for example: ```D:\onedrive\eagle\Library```.
+## 1. Basic Configuration
 
-Since Obsidian and Eagle might exist on different computers via sync methods like OneDrive, Nut Cloud, or hard drives, to ensure effective linking and avoid repeatedly changing settings, this plugin supports multiple addresses for Eagle libraries.
+### 1.1 Connecting Eagle Libraries
 
-For instance, on Computer A, the Eagle library might be located at ```H:\directory\example.Library```, and on Computer B, it might be at ```E:\xxxx\example.Library```. The content is the same, but they are located at different addresses.
+The plugin supports managing multiple Eagle libraries and handles path differences for the same library across different devices (e.g., Windows/Mac or different drives).
 
-Once set up, the system will automatically map the local server to ```D:\xxxx\eagle\Library``` when using Computer A, and to ```E:\xxxx\Library``` when using Computer B, ensuring better maintenance of attachment links.
+1. Go to the **Eagle Libraries** section in the plugin settings.
+2. Click **+** to add a library.
+3. Enter a **Library Name**.
+4. In **Library Paths**, enter the absolute path to the Eagle library folder (the folder ending in `.library`).
+    - If you sync your library across multiple devices, you can add multiple paths for the same library (e.g., `D:\Eagle\MyLib.library` on your home PC and `E:\Assets\MyLib.library` on your work PC). The plugin will automatically detect and use the valid path for the current device.
+5. Click the **checkmark icon** next to the library name to set it as the currently active library.
 
-<img src="../assets/setting.png" width="800">
+### 1.2 Server Port
 
-# From Eagle to Obsidian
+The plugin starts a local server to serve Eagle images.
 
-Currently, attachments can be moved from Eagle to Obsidian through copying and dragging.
+- **Port**: Default is `6060`. If this port is already in use, you can change it in the settings. (Note: Eagle itself does not yet support custom ports for its API, so it is usually best to keep the plugin default if possible).
 
-<img src="../assets/fromeagle.gif" width="800">
+## 2. Core Features
 
-This is applicable to attachments of all formats, such as `pdf`, `png`, `mp4`, `url`, etc. For image files like `png` and `jpg`, the copied format will be ```![image.png|700](http://localhost:6060/images/M7G6FALW9DRW5.info)```, allowing preview in Obsidian. Other file types will appear as link formats like ```[image.png|700](http://localhost:6060/images/M7G6FALW4.info)```.
+### 2.1 Insert Image from Eagle
 
-## Locating Eagle Images in Obsidian
+Search for and insert assets directly within Obsidian without needing to open the Eagle app.
 
-Right-click on an image in Eagle, choose to copy the link, then open Obsidian. Use ```Ctrl+P``` to activate the ```EagleBridge:eagle-jump-obsidian``` functionality (which can be assigned a shortcut key) and paste the link to locate the image.
+- **Usage**:
+    1. Open the Command Palette (`Ctrl/Cmd + P`) and type `Insert Image From Eagle`.
+    2. Enter keywords in the search box.
+    3. Use the Up/Down arrow keys to select an asset and press `Enter` to insert it.
+- **Folder Filters**:
+    - Configure **Folder Filters** in the settings to add your frequently used Eagle folders.
+    - In the insert modal, you can quickly filter the search results by these folders.
 
-<img src="../assets/searchname.gif" width="800">
+### 2.2 Drag & Drop / Paste
 
-# From Obsidian to Eagle
+- **From Eagle to Obsidian**: Drag images or copy image links from Eagle and paste them into your Obsidian notes. The plugin automatically generates links like `![Title](http://localhost:6060/...)` for real-time preview.
+- **From Local to Eagle**: Drag or paste local images into a note. The plugin automatically uploads them to your Eagle library and replaces them with Eagle links.
+    - **Upload Settings**: You can specify a target **Folder ID** in the settings for these uploads.
 
-Currently, attachments can be copied and dragged from a local source into Obsidian, and the plugin will automatically upload them to Eagle. Images can be previewed directly; occasionally, due to loading issues, images might not display immediately. Press enter after the link to display them normally.
+### 2.3 Reverse Sync
 
-<img src="../assets/upload.gif" width="800">
+Ensures that the link titles in Obsidian match the actual filenames in Eagle.
 
-You can set the ```Eagle Folder ID``` option to specify a folder in Eagle to upload the local files to.
+- **Auto Sync**: Enable `Reverse Sync on Open` in the settings. The plugin will check and update link titles every time you open a note.
+- **Manual Sync**: Run the command `Reverse Sync Eagle Links in Current File` to manually refresh the links in the current document.
 
-<img src="../assets/eaglefolderid.gif" width="800">
+### 2.4 Tag Synchronization
 
-URLs can also be uploaded and managed, an optional feature that can be toggled on or off in the settings.
+Sync Eagle asset tags to your Obsidian note's YAML Frontmatter or content.
 
-<img src="../assets/url.gif" width="800">
+- **Usage**: Run the command `Synchronized Page Tabs`.
 
-- **Advantages**:
-  - Uploading URLs allows for managing online resources within Obsidian, achieving an all-in-one management for all types of resources.
-- **Disadvantages**:
-  - These links become local server links, which might be lost when sharing documents (similarly, links for PDFs, MP4s, etc., cannot be opened. Future plans include a new feature to export all attachments (including URLs) associated with a `.md` document as individual folders, replacing links with ones that are easier to share).
-  - There is a delay of about 10 seconds as Eagle parses the URL for fetching cover images, during which performing other tasks may cause errors.
-  - Users may prefer not all URLs to be managed.
-- **Additional Notes**:
-  - The switch affects only URL uploads from Obsidian to Eagle. Links from Eagle to Obsidian can be loaded directly and aren't affected by this option. Since covers have already been fetched, the process is faster and smoother. It is recommended to turn off URL uploads and only paste links that need to be managed into Obsidian via Eagle.
+## 3. Image Viewing & Management
 
-<img src="../assets/urlfromeagle.gif" width="800">
+### 3.1 Context Menu
 
-# Operations in Obsidian
+Right-click on an Eagle image link (in Preview or Editor mode) to access a variety of features:
 
-## Image Zoom Preview
+- **Open in Eagle**: Locate and select the asset in the Eagle app.
+- **Modify Properties**: Edit the asset's name, annotation, URL, and tags.
+- **Manage Folders**: Move the asset to other Eagle folders.
+- **Copy Markdown Link**: Copy the standard Markdown link for the asset.
 
-Clicking the right half of an image allows for zoomed preview.
+### 3.2 Zoom & Preview
 
-<img src="../assets/zoom.gif" width="800">
+- **Click to Preview**: Click an image to view it in full size (supports zoom with scroll wheel).
+- **Size Control**:
+    - **Adaptive Ratio**: Set the image width relative to the window width (0.1 - 1.0).
+    - **Image Size**: Set a fixed default width (in pixels). If left empty, the adaptive ratio is used.
 
-## Default Image Size Adjustment
+## 4. Advanced Settings
 
-Default image insertion size can be adjusted in the settings under ```image size```.
+- **Open in Obsidian**: Choose how asset links open in Obsidian (New Page, Popup, or Right Pane).
+- **Website Upload**: If enabled, pasted URL images will also be uploaded to Eagle (default is off, only local files are uploaded).
+- **Debug Mode**: Enable this for developer debugging (outputs detailed logs to the console).
 
-<img src="../assets/imagesize.gif" width="800">
+---
 
-## Options Menu
-
-For images in format ```![image.png|700](http://localhost:6060/images/M7G6FALW9DRW5.info)```, right-clicking and holding opens the options menu. For link format ```[image.png|700](http://localhost:6060/images/M7G6FALW5.info)```, click to open options.
-
-<img src="../assets/menucall.gif" width="800">
-
-### Option Descriptions
-
-- **Open in Obsidian**: Opens the attachment in Obsidian's default way. With the core plugin Web Viewer enabled, URLs can be opened in Obsidian, supporting previews for images, videos, audio, and PDFs. Unsupported formats (like PPT, Word) can't be previewed.
-- **Open in Eagle**: Previews the attachment in Eagle, aiding quick and convenient image modifications and operations through Eagle's other plugins.
-- **Open in the default app**: Opens the attachment using the system's default opening method.
-- **Open in other apps**: Opt to open the attachment with other apps, like Photoshop.
-- **Copy source file**: Copies the attachment for sharing or moving.
-- **Eagle Name**: Shows and copies the attachment name. It also displays annotation, URL, and tags.
-- **Modify properties**: Modify attachment annotation, URL, and tags. Use a comma `,` to separate tags.
-- **Copy markdown link**: Makes it easy to reference links in other documents.
-- **Clear markdown link**: Quickly removes the attachment link.
-- **Annotation Sync (Video)**: For video files, supports downloading annotations from Eagle to Obsidian (as markdown callouts) and uploading modified annotations from Obsidian back to Eagle.
-
-<img src="../assets/menu.png" width="400">
-
-## Attachment Synchronization and `.md` Tags
-
-After finishing an article, use ```Ctrl+P``` to search for ```EagleBridge: synchronized-page-tabs``` (or bind to a hotkey) and synchronize attachment tags with those in the `.md` file.
-
-<img src="../assets/synch.gif" width="800">
-
-## Reverse Sync
-
-When you modify attachment properties (like name) in Eagle, or want to ensure link titles in your notes match Eagle, use the Reverse Sync feature.
-
-- **Auto-sync**: Enable "Reverse Sync on Open" in settings. When you open a Markdown note, the plugin automatically checks and updates Eagle link titles (e.g., `[Title](eagle://...)`) within it.
-- **Manual sync**: Run `Reverse Sync Eagle Links in Current File` via the Command Palette to trigger manually.
-
-This feature supports silent updates, notifying only when changes are detected to minimize distraction.
+_Note: This plugin requires the Eagle application to be running locally._
