@@ -189,4 +189,14 @@ export const zh: Record<TranslationKey, string> = {
 	"menu.annotationsDownloaded": "标注已下载",
 	"menu.annotationsCleared": "标注已清空",
 	"menu.noAnnotationsFound": "未找到标注",
+
+	"command.syncPageTabs": "同步标签",
+	"command.eagleJump": "跳转到 Eagle",
+	"command.insertImage": "从 Eagle 插入图片",
+	"command.reverseSync": "反向同步当前文件中的 Eagle 链接",
+	"command.copyLatestUrl": "复制最新 Eagle 链接",
+	"command.insertLatestUrl": "插入最新 Eagle 链接",
+	"command.noLatestUrl": "没有最新的 Eagle 链接",
+	"command.copyFailed": "复制失败",
+	"command.insertSuccess": "已插入最新 Eagle 链接",
 };

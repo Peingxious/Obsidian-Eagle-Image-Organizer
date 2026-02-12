@@ -180,4 +180,13 @@ export const en = {
 	"menu.annotationsDownloaded": "Annotations Downloaded",
 	"menu.annotationsCleared": "Annotations Cleared",
 	"menu.noAnnotationsFound": "No Annotations Found",
+	"command.syncPageTabs": "Synchronized Page Tabs",
+	"command.eagleJump": "Eagle Jump Obsidian",
+	"command.insertImage": "Insert Image From Eagle",
+	"command.reverseSync": "Reverse Sync Eagle Links in Current File",
+	"command.copyLatestUrl": "Copy Latest Eagle URL",
+	"command.insertLatestUrl": "Insert Latest Eagle URL",
+	"command.noLatestUrl": "No latest Eagle URL",
+	"command.copyFailed": "Copy failed",
+	"command.insertSuccess": "Inserted latest Eagle URL",
 };

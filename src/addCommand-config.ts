@@ -7,7 +7,7 @@ import { t } from "./i18n";
 export const addCommandSynchronizedPageTabs = (myPlugin: MyPlugin) => {
 	myPlugin.addCommand({
 		id: "synchronized-page-tabs",
-		name: "Synchronized Page Tabs",
+		name: t("command.syncPageTabs"),
 		callback: async () => {
 			syncTags(myPlugin.app, myPlugin.settings);
 		},
@@ -17,7 +17,7 @@ export const addCommandSynchronizedPageTabs = (myPlugin: MyPlugin) => {
 export const addCommandEagleJump = (myPlugin: MyPlugin) => {
 	myPlugin.addCommand({
 		id: "eagle-jump-obsidian",
-		name: "Eagle Jump Obsidian",
+		name: t("command.eagleJump"),
 		callback: async () => {
 			jumpModal(myPlugin.app, myPlugin.settings);
 		},
@@ -27,7 +27,7 @@ export const addCommandEagleJump = (myPlugin: MyPlugin) => {
 export const addCommandInsertImageFromEagle = (myPlugin: MyPlugin) => {
 	myPlugin.addCommand({
 		id: "insert-image-from-eagle",
-		name: "Insert Image From Eagle",
+		name: t("command.insertImage"),
 		callback: async () => {
 			openInsertImageFromEagleModal(myPlugin);
 		},
@@ -37,7 +37,7 @@ export const addCommandInsertImageFromEagle = (myPlugin: MyPlugin) => {
 export const addCommandReverseSync = (myPlugin: MyPlugin) => {
 	myPlugin.addCommand({
 		id: "reverse-sync-eagle-links",
-		name: "Reverse Sync Eagle Links in Current File",
+		name: t("command.reverseSync"),
 		callback: async () => {
 			const view = myPlugin.app.workspace.getActiveViewOfType(MarkdownView);
 			if (view) {
@@ -58,11 +58,11 @@ export const addCommandReverseSync = (myPlugin: MyPlugin) => {
 export const addCommandCopyLatestEagleUrl = (myPlugin: MyPlugin) => {
 	myPlugin.addCommand({
 		id: "copy-latest-eagle-url",
-		name: "Copy Latest Eagle URL",
+		name: t("command.copyLatestUrl"),
 		callback: async () => {
 			const url = myPlugin.api?.getLatestEagleUrl?.() || null;
 			if (!url) {
-				new Notice("No latest Eagle URL");
+				new Notice(t("command.noLatestUrl"));
 				return;
 			}
 			try {
@@ -74,7 +74,7 @@ export const addCommandCopyLatestEagleUrl = (myPlugin: MyPlugin) => {
 				}
 				new Notice(t("menu.copyToClipboardSuccess"));
 			} catch {
-				new Notice("Copy failed");
+				new Notice(t("command.copyFailed"));
 			}
 		},
 	});
@@ -83,15 +83,15 @@ export const addCommandCopyLatestEagleUrl = (myPlugin: MyPlugin) => {
 export const addCommandInsertLatestEagleUrl = (myPlugin: MyPlugin) => {
 	myPlugin.addCommand({
 		id: "insert-latest-eagle-url",
-		name: "Insert Latest Eagle URL",
+		name: t("command.insertLatestUrl"),
 		editorCallback: async (editor) => {
 			const url = myPlugin.api?.getLatestEagleUrl?.() || null;
 			if (!url) {
-				new Notice("No latest Eagle URL");
+				new Notice(t("command.noLatestUrl"));
 				return;
 			}
 			editor.replaceSelection(url);
-			new Notice("Inserted latest Eagle URL");
+			new Notice(t("command.insertSuccess"));
 		},
 	});
 };
