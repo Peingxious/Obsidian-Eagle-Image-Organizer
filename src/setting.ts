@@ -34,6 +34,7 @@ export interface MyPluginSettings {
 	libraries?: EagleLibrary[];
 	currentLibraryId?: string;
 	archivedTags?: string[];
+	reverseSyncOnOpen?: boolean;
 }
 
 export const DEFAULT_SETTINGS: MyPluginSettings = {
@@ -55,6 +56,7 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
 	libraries: [],
 	currentLibraryId: undefined,
 	archivedTags: [],
+	reverseSyncOnOpen: false,
 };
 
 export class SampleSettingTab extends PluginSettingTab {
@@ -647,7 +649,7 @@ export class SampleSettingTab extends PluginSettingTab {
 			.setDesc(t("setting.reverseSyncOnOpen.desc"))
 			.addToggle((toggle) => {
 				toggle
-					.setValue(this.plugin.settings.reverseSyncOnOpen)
+					.setValue(this.plugin.settings.reverseSyncOnOpen || false)
 					.onChange(async (value) => {
 						this.plugin.settings.reverseSyncOnOpen = value;
 						await this.plugin.saveSettings();

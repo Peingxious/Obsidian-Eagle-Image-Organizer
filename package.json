@@ -1,6 +1,6 @@
 {
 	"name": "eagle-image-organizer",
-	"version": "0.3.8",
+	"version": "0.3.9",
 	"description": "Eagle Image Origanizer is a plugin for Obsidian that allows you to connect to the Eagle.",
 	"main": "main.js",
 	"scripts": {

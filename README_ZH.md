@@ -20,26 +20,29 @@
 ## 初始设置
 
 1. 配置 Eagle 库
-   - 打开插件设置，点击 **+** 添加库
-   - 在 **Library Paths** 中填写 Eagle 库的绝对路径（以 `.library` 结尾的文件夹）
-   - 同一库可添加多个路径（用于不同设备盘符差异）
-   - 点击库名右侧的对勾图标设为当前库
+    - 打开插件设置，点击 **+** 添加库
+    - 在 **Library Paths** 中填写 Eagle 库的绝对路径（以 `.library` 结尾的文件夹）
+    - 同一库可添加多个路径（用于不同设备盘符差异）
+    - 点击库名右侧的对勾图标设为当前库
 2. 配置监听端口
-   - 默认端口为 `6060`；确保未与其他服务冲突
-   - 配置完成后建议重启 Obsidian 以确保本地服务正确启动
+    - 默认端口为 `6060`；确保未与其他服务冲突
+    - 配置完成后建议重启 Obsidian 以确保本地服务正确启动
 
 ## 核心功能
 
 ### 搜索并插入 Eagle 资产
+
 - 通过命令面板运行 `Insert Image From Eagle`（建议设置快捷键）
 - 支持多关键词（空格分隔）检索
 - 支持文件夹过滤与键盘上下选择、回车插入
 
 ### 上传本地文件到 Eagle
+
 - 将本地图片拖入或粘贴到 Obsidian，自动上传至 Eagle 并生成可预览链接
 - 可在设置中指定上传目标 **Folder ID**
 
 ### 反向同步
+
 - 开启 `Reverse Sync on Open` 后，打开笔记时自动将 Eagle 链接标题更新为实际文件名
 - 也可手动运行 `Reverse Sync Eagle Links in Current File` 命令
 
@@ -52,9 +55,11 @@
 ## 安装
 
 ### 通过 BRAT 安装
+
 - 在 [BRAT](https://github.com/TfTHacker/obsidian42-brat) 中添加：`https://github.com/zyjGraphein/Obsidian-Eagle-Image-Organizer`
 
 ### 手动安装
+
 - 前往最新 Release 页面，下载 `main.js`、`manifest.json`、`style.css`，放置到 `<your_vault>/.obsidian/plugins/Obsidian-Eagle-Image-Organizer/`
 
 ## 使用说明
@@ -67,18 +72,18 @@
 本插件会在本地库 images 目录发生新建时，生成一个“最新链接”，其他插件或用户可通过以下途径获取：
 
 - 命令（适合用户）
-  - Copy Latest Eagle URL：复制当前最新链接到剪贴板
-  - Insert Latest Eagle URL：在光标处插入当前最新链接文本
+    - Copy Latest Eagle URL：复制当前最新链接到剪贴板
+    - Insert Latest Eagle URL：在光标处插入当前最新链接文本
 - 插件 API（适合开发者）
-  - const p = app.plugins.getPlugin('eagle-image-organizer')
-  - const url = p?.api?.getLatestEagleUrl()
-  - const off = p?.api?.onEagleUrlUpdated((url) => { /* 使用 url */ })
-  - 取消订阅：调用 off()
-- 工作区事件（适合开发者）
-  - app.workspace.on('eagle-image-organizer:url-updated', (url) => { /* 使用 url */ })
+    - const p = app.plugins.getPlugin('eagle-image-organizer')
+    - const url = p?.api?.getLatestEagleUrl()
+    - const path = p?.api?.getActiveLibraryPath() // 获取当前激活的库路径
+    - const off = p?.api?.onEagleUrlUpdated((url) => { /_ 使用 url _/ })
 - HTTP 接口
-  - GET `http://localhost:<端口>/latest`
-  - 返回：`{ "url": "http://localhost:<端口>/images/<id>.info" }`（无可用链接时为 `null`）
+    - GET `http://localhost:<端口>/latest`
+    - 返回：`{ "url": "http://localhost:<端口>/images/<id>.info" }`
+    - GET `http://localhost:<端口>/libraryPath`
+    - 返回：`{ "path": "E:\\Eagle\\MyLibrary.library" }`
 
 ## 注意事项
 
@@ -101,7 +106,16 @@
 
 ## 更新日志
 
+### 0.3.9
+
+- 改进：重构为模块化类系统，提升性能与可维护性。
+- 改进：通过批处理编辑器更新优化反向同步性能。
+- 改进：优化事件监听器，降低 CPU 占用。
+- 功能：新增获取当前激活 Eagle 库路径的 API (`getActiveLibraryPath`)。
+- 功能：新增 HTTP 接口 `GET /libraryPath` 以获取当前激活库路径。
+
 ### 0.3.8
+
 - 修复：修复了新版本中 Notice 提示无法显示的问题
 - 改进：优化了 i18n 语言检测逻辑
 - 改进：命令面板中的命令名称现已支持中英文切换

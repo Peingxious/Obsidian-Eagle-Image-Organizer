@@ -14,7 +14,13 @@ import {
 	debounce,
 } from "obsidian";
 import { t } from "./i18n";
-import { startServer, refreshServer, stopServer, getLatestDirUrl, urlEmitter } from "./server";
+import {
+	startServer,
+	refreshServer,
+	stopServer,
+	getLatestDirUrl,
+	urlEmitter,
+} from "./server";
 import { handlePasteEvent, handleDropEvent } from "./urlHandler";
 import { onElement } from "./onElement";
 import { exec, spawn, execSync } from "child_process";
@@ -63,6 +69,7 @@ export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
 	api: {
 		getLatestEagleUrl: () => string | null;
+		getActiveLibraryPath: () => string;
 		onEagleUrlUpdated: (cb: (url: string) => void) => () => void;
 	};
 
@@ -95,13 +102,17 @@ export default class MyPlugin extends Plugin {
 		startServer(this.settings.libraryPath, this.settings.port);
 		this.api = {
 			getLatestEagleUrl: () => getLatestDirUrl(),
+			getActiveLibraryPath: () => this.settings.libraryPath,
 			onEagleUrlUpdated: (cb: (url: string) => void) => {
 				urlEmitter.on("urlUpdated", cb);
 				return () => urlEmitter.off("urlUpdated", cb);
 			},
 		};
 		urlEmitter.on("urlUpdated", (u: string) => {
-			(this.app.workspace as any).trigger?.("eagle-image-organizer:url-updated", u);
+			(this.app.workspace as any).trigger?.(
+				"eagle-image-organizer:url-updated",
+				u,
+			);
 		});
 		// 添加设置面板
 		this.addSettingTab(new SampleSettingTab(this.app, this));
@@ -138,73 +149,54 @@ export default class MyPlugin extends Plugin {
 			"click",
 			async (event: MouseEvent) => {
 				const target = event.target as HTMLElement;
+				// 使用更高效的选择器匹配，并合并逻辑
+				const isLink = target.matches(
+					"a.external-link, span.external-link, .cm-link, a.cm-underline",
+				);
+				if (!isLink) return;
+
 				const activeView =
 					this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (!activeView) {
-					print("Cannot find the active view");
-					return;
-				}
+				if (!activeView) return;
 
 				const inPreview = activeView.getMode() === "preview";
 				let url: string | null = null;
 
 				if (inPreview) {
-					if (!target.matches("a.external-link")) {
-						return;
-					}
-
 					const linkElement = target as HTMLAnchorElement;
 					if (linkElement && linkElement.href) {
 						url = linkElement.href;
-						print(`Preview mode link: ${url}`);
 					}
 				} else {
-					if (
-						!target.matches(
-							"span.external-link, .cm-link, a.cm-underline",
-						)
-					) {
-						return;
-					}
-
 					const editor = activeView.editor;
 					const cursor = editor.getCursor();
 					const lineText = editor.getLine(cursor.line);
-					const urlMatches = Array.from(
-						lineText.matchAll(/\bhttps?:\/\/[^\s)]+/g),
-					);
-					print(urlMatches);
-					let closestUrl = null;
-					let minDistance = Infinity;
-					const cursorPos = cursor.ch;
-					print(cursorPos);
 
-					for (let i = 0; i < urlMatches.length; i++) {
-						const match = urlMatches[i];
-						const end = (match.index || 0) + match[0].length + 1;
-						if (cursorPos <= end) {
-							closestUrl = match[0];
-							print(`Cursor is in the link interval: ${i + 1}`);
+					// 只有当行内包含 localhost 链接时才进行正则匹配
+					if (!lineText.includes("http://localhost")) return;
+
+					const urlMatches = Array.from(
+						lineText.matchAll(
+							/\bhttps?:\/\/localhost:\d+\/images\/[^\s)]+/g,
+						),
+					);
+
+					const cursorPos = cursor.ch;
+					for (const match of urlMatches) {
+						const start = match.index || 0;
+						const end = start + match[0].length;
+						// 稍微放宽判定范围
+						if (cursorPos >= start && cursorPos <= end + 1) {
+							url = match[0];
 							break;
 						}
 					}
-
-					if (closestUrl) {
-						url = closestUrl;
-						print(`Edit mode link: ${url}`);
-					}
 				}
 
-				if (
-					url &&
-					url.match(/^http:\/\/localhost:\d+\/images\/[^.]+\.info$/)
-				) {
+				if (url && url.includes("/images/") && url.endsWith(".info")) {
 					event.preventDefault();
 					event.stopPropagation();
-					print(`Prevented link: ${url}`);
 					handleLinkClick(this, event, url);
-				} else {
-					return;
 				}
 			},
 			{ capture: true },
@@ -397,6 +389,12 @@ export default class MyPlugin extends Plugin {
 			new Notice(t("reverseSync.checking"));
 		}
 
+		const changes: {
+			from: { line: number; ch: number };
+			to: { line: number; ch: number };
+			text: string;
+		}[] = [];
+
 		for (let i = 0; i < lineCount; i++) {
 			let lineText = editor.getLine(i);
 			const originalLineText = lineText;
@@ -479,12 +477,22 @@ export default class MyPlugin extends Plugin {
 			}
 
 			if (lineChanged) {
-				editor.replaceRange(
-					lineText,
-					{ line: i, ch: 0 },
-					{ line: i, ch: originalLineText.length },
-				);
+				changes.push({
+					from: { line: i, ch: 0 },
+					to: { line: i, ch: originalLineText.length },
+					text: lineText,
+				});
 			}
+		}
+
+		if (changes.length > 0) {
+			editor.transaction({
+				changes: changes.map((c) => ({
+					from: c.from,
+					to: c.to,
+					text: c.text,
+				})),
+			});
 		}
 
 		if (updateCount > 0) {

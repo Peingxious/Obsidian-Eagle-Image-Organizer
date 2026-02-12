@@ -1,7 +1,7 @@
 import * as http from "http";
 import * as fs from "fs";
 import * as path from "path";
-import chokidar from "chokidar";
+import * as chokidar from "chokidar";
 import { EventEmitter } from "events";
 import { Notice } from "obsidian";
 import { print, setDebug } from "./main";
@@ -88,7 +88,7 @@ export function startServer(libraryPath: string, port: number) {
 		ignoreInitial: true, // 忽略初始添加的文件和文件夹
 	});
 
-	watcher.on("addDir", (dirPath) => {
+	watcher.on("addDir", (dirPath: string) => {
 		const relativePath = path
 			.relative(libraryPath, dirPath)
 			.replace(/\\/g, "/");
@@ -115,6 +115,12 @@ export function startServer(libraryPath: string, port: number) {
 		if (pathname === "/latest") {
 			res.writeHead(200, { "Content-Type": "application/json" });
 			res.end(JSON.stringify({ url: latestDirUrl }));
+			return;
+		}
+
+		if (pathname === "/libraryPath") {
+			res.writeHead(200, { "Content-Type": "application/json" });
+			res.end(JSON.stringify({ path: libraryPath }));
 			return;
 		}
 
@@ -390,7 +396,7 @@ export function stopServer() {
 			.then(() => {
 				print("Watcher closed.");
 			})
-			.catch((err) => {
+			.catch((err: any) => {
 				console.error("Error closing watcher:", err);
 			});
 		watcher = null;

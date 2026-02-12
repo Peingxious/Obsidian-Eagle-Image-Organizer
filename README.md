@@ -20,36 +20,41 @@ This is a plugin for Obsidian that allows you to connect to Eagle, enabling you 
 ## Setup
 
 1. **Configure Eagle Library**
-   - Open plugin settings, click **+** to add a library.
-   - Enter the absolute path of your Eagle library (folder ending in `.library`) in **Library Paths**.
-   - You can add multiple paths for the same library (for different drive letters on different devices).
-   - Click the checkmark icon next to the library name to set it as active.
+    - Open plugin settings, click **+** to add a library.
+    - Enter the absolute path of your Eagle library (folder ending in `.library`) in **Library Paths**.
+    - You can add multiple paths for the same library (for different drive letters on different devices).
+    - Click the checkmark icon next to the library name to set it as active.
 
 2. **Configure Port**
-   - Default port is `6060`; ensure it doesn't conflict with other services.
-   - Recommended to restart Obsidian after configuration to ensure the local server starts correctly.
+    - Default port is `6060`; ensure it doesn't conflict with other services.
+    - Recommended to restart Obsidian after configuration to ensure the local server starts correctly.
 
 ## Core Functions
 
 ### Search and Insert Eagle Assets
+
 - Run `Insert Image From Eagle` from the Command Palette (setting a hotkey is recommended).
 - Supports multi-keyword search (space-separated).
 - Supports folder filtering and keyboard navigation.
 
 ### Upload Local Files to Eagle
+
 - Drag or paste local images into Obsidian; they will be automatically uploaded to Eagle and a preview link will be generated.
 - You can specify the **Folder ID** for uploads in the settings.
 
 ### Reverse Sync
+
 - Enable `Reverse Sync on Open` to automatically update Eagle link titles to actual filenames when opening a note.
 - Or manually run the `Reverse Sync Eagle Links in Current File` command.
 
 ## Installation
 
 ### Via BRAT
+
 - Add `https://github.com/zyjGraphein/Obsidian-Eagle-Image-Organizer` to [BRAT](https://github.com/TfTHacker/obsidian42-brat).
 
 ### Manual Installation
+
 - Download `main.js`, `manifest.json`, and `style.css` from the latest Release page and place them in `<your_vault>/.obsidian/plugins/Obsidian-Eagle-Image-Organizer/`.
 
 ## Usage Guide
@@ -63,7 +68,29 @@ If you like this plugin, consider buying me a coffee!
 
 ## Changelog
 
+### 0.3.9
+
+- Improvement: Refactored architecture to a modular class-based system for better performance and maintainability.
+- Improvement: Optimized Reverse Sync performance by batching editor updates.
+- Improvement: Optimized event listeners to reduce CPU overhead.
+- Feature: Added API to retrieve the current active Eagle library path (`getActiveLibraryPath`).
+- Feature: Added HTTP endpoint `GET /libraryPath` to retrieve the current active Eagle library path.
+
+### Developer API
+
+- Plugin API (for developers)
+    - `const p = app.plugins.getPlugin('eagle-image-organizer')`
+    - `const url = p?.api?.getLatestEagleUrl()`
+    - `const path = p?.api?.getActiveLibraryPath()` // Get current active library path
+    - `const off = p?.api?.onEagleUrlUpdated((url) => { /* use url */ })`
+- HTTP Interface
+    - GET `http://localhost:<port>/latest`
+    - Returns: `{ "url": "http://localhost:<port>/images/<id>.info" }`
+    - GET `http://localhost:<port>/libraryPath`
+    - Returns: `{ "path": "E:\\Eagle\\MyLibrary.library" }`
+
 ### 0.3.8
+
 - Fix: Fixed an issue where Notices were not displaying in newer versions.
 - Improvement: Optimized i18n language detection logic.
 - Improvement: Command names in the Command Palette now support English/Chinese localization.
